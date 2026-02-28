@@ -45,3 +45,6 @@ checkpoints/
 # Logs
 *.log
 logs/
+
+# Spark binary (downloaded by setup_mac.sh)
+spark/
