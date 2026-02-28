@@ -34,16 +34,14 @@ Cricsheet (JSON files) → CricsheetIngestionJob → Bronze → Silver → GoldB
 
 ---
 
-## Prerequisites
+## Prerequisites (macOS)
 
-| Tool       | Version    | Install                            |
-|------------|------------|------------------------------------|
-| Java       | 11         | `brew install openjdk@11`          |
-| Scala      | 2.12.18    | `brew install scala`               |
-| Maven      | 3.8+       | `brew install maven`               |
-| Docker     | Latest     | `brew install --cask docker`       |
-| Python     | 3.9+       | `brew install python`              |
-| Spark      | 3.4.1      | `brew install apache-spark`        |
+Only 3 things needed on your host machine:
+1. **Docker Desktop** — runs Kafka, Zookeeper, Kafka UI (everything except the JVM)
+2. **Java 11** — `brew install openjdk@11`
+3. **Maven** — `brew install maven` (to build the fat JAR)
+
+That's it. No Kafka, no Spark, no Scala installation needed on your Mac; everything else runs inside Docker containers.
 
 ---
 
@@ -96,9 +94,8 @@ This runs (in parallel threads):
 ### Step 3: Run CricAPI Poller (separate terminal)
 
 ```bash
-spark-submit --class com.rajesh.cricket.Main \
-  target/cricket-analytics-platform-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
-  --mode poller
+java -cp target/cricket-analytics-platform-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
+  com.rajesh.cricket.Main --mode poller
 ```
 
 ---
@@ -158,23 +155,27 @@ cricket-analytics-platform/
 
 ```bash
 # Batch pipeline (Cricsheet ingestion → Bronze → Silver → Gold)
-spark-submit ... Main --mode batch --data-path /path/to/cricsheet
+java -cp target/cricket-analytics-platform-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
+  com.rajesh.cricket.Main --mode batch --data-path /path/to/cricsheet
 
 # Streaming pipeline (Kafka → Bronze → Silver → Gold)
-spark-submit ... Main --mode streaming
+java -cp target/cricket-analytics-platform-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
+  com.rajesh.cricket.Main --mode streaming
 
 # CricAPI poller only (publishes to Kafka)
-spark-submit ... Main --mode poller
+java -cp target/cricket-analytics-platform-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
+  com.rajesh.cricket.Main --mode poller
 
 # Gold KPI batch computation only
-spark-submit ... Main --mode gold
+java -cp target/cricket-analytics-platform-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
+  com.rajesh.cricket.Main --mode gold
 ```
 
 ---
 
 ## Kafka UI
 
-After running `docker-compose up`, open: **http://localhost:8080**
+After running `docker compose up -d`, open: **http://localhost:8080**
 
 You can:
 - Monitor topic offsets and consumer groups
@@ -185,6 +186,10 @@ Kafka topics created:
 - `cricket-live-balls` — Ball-by-ball events (3 partitions)
 - `cricket-live-matches` — Match metadata (3 partitions)
 - `cricket-batch` — Batch processing events (3 partitions)
+
+## Spark UI
+
+The optional Spark master container exposes its UI at **http://localhost:8090**.
 
 ---
 

@@ -1,29 +1,33 @@
 #!/bin/bash
-# Create Kafka topics for cricket analytics platform
+# Create Kafka topics using docker exec — no host Kafka installation needed
 
-KAFKA_HOST="${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}"
+KAFKA_CONTAINER="${KAFKA_CONTAINER:-cricket-kafka}"
+KAFKA_INTERNAL_HOST="localhost:9092"
 PARTITIONS=3
 REPLICATION_FACTOR=1
 
-echo "Creating Kafka topics on $KAFKA_HOST..."
+echo "Waiting for Kafka broker to be ready inside container '$KAFKA_CONTAINER'..."
+until docker exec "$KAFKA_CONTAINER" kafka-topics --bootstrap-server "$KAFKA_INTERNAL_HOST" --list > /dev/null 2>&1; do
+  echo "  Kafka not ready yet, retrying in 3s..."
+  sleep 3
+done
+echo "Kafka is ready."
 
-kafka-topics.sh --bootstrap-server "$KAFKA_HOST" \
-  --create --if-not-exists \
-  --topic cricket-live-balls \
-  --partitions $PARTITIONS \
-  --replication-factor $REPLICATION_FACTOR
+create_topic() {
+  local topic=$1
+  echo "Creating topic: $topic"
+  docker exec "$KAFKA_CONTAINER" kafka-topics \
+    --bootstrap-server "$KAFKA_INTERNAL_HOST" \
+    --create --if-not-exists \
+    --topic "$topic" \
+    --partitions $PARTITIONS \
+    --replication-factor $REPLICATION_FACTOR
+}
 
-kafka-topics.sh --bootstrap-server "$KAFKA_HOST" \
-  --create --if-not-exists \
-  --topic cricket-live-matches \
-  --partitions $PARTITIONS \
-  --replication-factor $REPLICATION_FACTOR
+create_topic "cricket-live-balls"
+create_topic "cricket-live-matches"
+create_topic "cricket-batch"
 
-kafka-topics.sh --bootstrap-server "$KAFKA_HOST" \
-  --create --if-not-exists \
-  --topic cricket-batch \
-  --partitions $PARTITIONS \
-  --replication-factor $REPLICATION_FACTOR
-
-echo "Topics created:"
-kafka-topics.sh --bootstrap-server "$KAFKA_HOST" --list
+echo ""
+echo "All topics:"
+docker exec "$KAFKA_CONTAINER" kafka-topics --bootstrap-server "$KAFKA_INTERNAL_HOST" --list
