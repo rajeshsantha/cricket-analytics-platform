@@ -85,7 +85,7 @@ object PressureIndexCalculator {
           lit(8.0),   // approximate required RR
           col("over_runs").cast("double"),
           col("wickets_in_over"),
-          (20 - col("over_num")) * lit(6),
+          (lit(20) - col("over_num")) * lit(6),
           lit(120)
         )
       )

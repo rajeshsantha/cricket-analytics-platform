@@ -45,10 +45,38 @@ object BronzeBatchJob {
   def writeToDelta(df: DataFrame)(implicit spark: SparkSession): Unit = {
     val bronzePath = AppConfig.deltaBronzeDeliveries
 
-    df.write
+    // info.players  → struct keyed by team name  (e.g. "Chennai Super Kings")
+    // info.registry → struct keyed by player name (e.g. "V Kohli")
+    // Both contain spaces in field names which Delta forbids.
+    // Rebuild info without those two sub-fields; all analytics columns are preserved.
+    val cleanDf = df
+      .withColumn("info", struct(
+        col("info.balls_per_over"),
+        col("info.city"),
+        col("info.dates"),
+        col("info.event"),
+        col("info.gender"),
+        col("info.match_type"),
+        col("info.officials"),
+        col("info.outcome"),
+        col("info.overs"),
+        col("info.player_of_match"),
+        col("info.season"),
+        col("info.team_type"),
+        col("info.teams"),
+        col("info.toss"),
+        col("info.venue")
+        // info.players and info.registry intentionally excluded:
+        // their keys are team/player names containing spaces, which
+        // Delta Lake forbids as column names.
+      ))
+      .withColumn("match_type", col("info.match_type"))
+      .withColumn("season",     col("info.season"))
+
+    cleanDf.write
       .format("delta")
       .mode("append")
-      .partitionBy("match_type", "batch_date")
+      .partitionBy("match_type", "season")
       .save(bronzePath)
 
     logger.info(s"BronzeBatchJob: written to Delta at $bronzePath")

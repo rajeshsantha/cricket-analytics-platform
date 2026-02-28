@@ -7,6 +7,7 @@ import com.rajesh.cricket.ingestion.batch.CricsheetIngestionJob
 import com.rajesh.cricket.ingestion.streaming.{CricApiPoller, KafkaProducer}
 import com.rajesh.cricket.silver.{SilverBatchJob, SilverStreamingJob}
 import org.apache.logging.log4j.LogManager
+import org.apache.spark.sql.SparkSession
 
 /**
  * Main entry point for the Cricket Analytics Platform.
@@ -43,12 +44,11 @@ object Main {
     val dataPath = argMap.getOrElse("data-path", "/tmp/cricsheet-data")
     logger.info(s"Running BATCH pipeline with data path: $dataPath")
 
-    implicit val spark = SparkSessionFactory.create()
+    implicit val spark: SparkSession = SparkSessionFactory.create()
     try {
-      CricsheetIngestionJob.run(dataPath)
-      BronzeBatchJob.run(dataPath)
-      SilverBatchJob.run
-      GoldBatchKPIs.run
+      BronzeBatchJob.run(dataPath)   // reads raw files → Bronze Delta
+      SilverBatchJob.run             // Bronze → Silver
+      GoldBatchKPIs.run              // Silver → Gold
       logger.info("Batch pipeline completed successfully")
     } finally {
       spark.stop()

@@ -55,10 +55,16 @@ object CricsheetIngestionJob {
   private def writeToBronze(df: DataFrame)(implicit spark: SparkSession): Unit = {
     val bronzePath = AppConfig.deltaBronzeDeliveries
 
-    df.write
+    // match_type lives inside the nested `info` struct (info.match_type).
+    // Promote it to a top-level column so Delta can use it as a partition key.
+    val partitioned = df
+      .withColumn("match_type", col("info.match_type"))
+      .withColumn("season",     col("info.season"))
+
+    partitioned.write
       .format("delta")
       .mode("append")
-      .partitionBy("match_type")
+      .partitionBy("match_type", "season")
       .save(bronzePath)
 
     logger.info(s"Written to Bronze Delta: $bronzePath")

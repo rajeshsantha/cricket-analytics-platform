@@ -24,7 +24,7 @@ class SilverJobSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   "SilverBatchJob.applyDataQuality" should "filter out rows with null batsman" in {
-    import spark.implicits._
+    val ss = spark; import ss.implicits._
 
     val df = Seq(
       ("Kohli",  "Starc", 4, 0, 4),
@@ -41,7 +41,7 @@ class SilverJobSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   it should "filter out rows with null bowler" in {
-    import spark.implicits._
+    val ss = spark; import ss.implicits._
 
     val df = Seq(
       ("Kohli", "Starc",   4, 0, 4),
@@ -56,7 +56,7 @@ class SilverJobSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   it should "filter out rows with invalid run totals (> 36)" in {
-    import spark.implicits._
+    val ss = spark; import ss.implicits._
 
     val df = Seq(
       ("Kohli", "Starc",  4, 0,  4),
@@ -71,7 +71,7 @@ class SilverJobSpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   it should "keep valid rows intact" in {
-    import spark.implicits._
+    val ss = spark; import ss.implicits._
 
     val df = Seq(
       ("Kohli",  "Starc",    4, 0, 4),

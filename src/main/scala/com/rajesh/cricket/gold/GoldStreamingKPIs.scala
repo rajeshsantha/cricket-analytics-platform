@@ -63,7 +63,7 @@ object GoldStreamingKPIs {
       .agg(
         sum("runs_total").as("window_runs"),
         count("*").as("balls_bowled"),
-        sum("is_wicket".cast("int")).as("wickets_in_window"),
+        sum(col("is_wicket").cast("int")).as("wickets_in_window"),
         // Run rate = runs per over (6 balls per over)
         (sum("runs_total") * 6.0 / count("*")).as("run_rate"),
         // Batsman strike rate: runs / balls * 100

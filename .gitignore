@@ -45,3 +45,4 @@ checkpoints/
 # Logs
 *.log
 logs/
+/getMatchIds.sh

@@ -62,7 +62,7 @@ class GoldKPISpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   /** Create in-memory test views matching the silver_deliveries and silver_matches schema. */
   private def createTestViews(): Unit = {
-    import spark.implicits._
+    val ss = spark; import ss.implicits._
 
     val deliveries = Seq(
       ("match-1", "T20", "India",     "Australia", "MCG", "2023-01-01", "India", "India", "bat",
