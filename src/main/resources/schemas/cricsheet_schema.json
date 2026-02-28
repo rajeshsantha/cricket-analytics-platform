@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cricsheet Match",
+  "description": "Schema for Cricsheet match data (JSON format)",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "data_version": { "type": "string" },
+        "created":      { "type": "string" },
+        "revision":     { "type": "integer" }
+      }
+    },
+    "info": {
+      "type": "object",
+      "properties": {
+        "balls_per_over": { "type": "integer" },
+        "city":           { "type": "string" },
+        "dates":          { "type": "array", "items": { "type": "string" } },
+        "event":          { "type": "object" },
+        "gender":         { "type": "string" },
+        "match_type":     { "type": "string" },
+        "outcome": {
+          "type": "object",
+          "properties": {
+            "winner": { "type": "string" },
+            "by":     { "type": "object" }
+          }
+        },
+        "overs":          { "type": "integer" },
+        "player_of_match": { "type": "array", "items": { "type": "string" } },
+        "players":        { "type": "object" },
+        "teams":          { "type": "array", "items": { "type": "string" } },
+        "toss": {
+          "type": "object",
+          "properties": {
+            "decision": { "type": "string" },
+            "winner":   { "type": "string" }
+          }
+        },
+        "venue": { "type": "string" }
+      }
+    },
+    "innings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "team": { "type": "string" },
+          "overs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "over": { "type": "integer" },
+                "deliveries": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "batter":      { "type": "string" },
+                      "bowler":      { "type": "string" },
+                      "non_striker": { "type": "string" },
+                      "runs": {
+                        "type": "object",
+                        "properties": {
+                          "batter":  { "type": "integer" },
+                          "extras":  { "type": "integer" },
+                          "total":   { "type": "integer" }
+                        }
+                      },
+                      "wickets": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "kind":       { "type": "string" },
+                            "player_out": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
