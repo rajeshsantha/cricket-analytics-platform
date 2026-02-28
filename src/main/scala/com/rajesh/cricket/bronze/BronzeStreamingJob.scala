@@ -29,7 +29,7 @@ object BronzeStreamingJob {
 
     val kafkaDf = KafkaStreamReader.readLiveBalls(spark)
     val enrichedDf = enrich(kafkaDf)
-    writeToDeltal(enrichedDf, spark)
+    writeToDelta(enrichedDf, spark)
   }
 
   /**
@@ -51,7 +51,7 @@ object BronzeStreamingJob {
    * @param spark  SparkSession
    * @return       StreamingQuery
    */
-  private def writeToDeltal(df: DataFrame, spark: SparkSession): StreamingQuery = {
+  private def writeToDelta(df: DataFrame, spark: SparkSession): StreamingQuery = {
     val bronzePath     = AppConfig.deltaBronzeLiveBalls
     val checkpointPath = s"${AppConfig.checkpointBase}/bronze/live_balls"
 
