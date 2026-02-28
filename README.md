@@ -129,7 +129,7 @@ DELTA_BASE_PATH=/tmp/cricket-delta
 
 ```
 cricket-analytics-platform/
-├── pom.xml                          # Maven build (Scala 2.12, Spark 3.4.1)
+├── pom.xml                          # Maven build (Scala 2.13, Spark 4.1.1)
 ├── .env.example                     # Environment variable template
 ├── conf/                            # Typesafe Config files
 ├── docker/                          # Docker Compose for Kafka + Kafka UI
@@ -260,12 +260,12 @@ The `GoldBatchKPIs` job computes:
 
 | Component      | Technology                    |
 |----------------|-------------------------------|
-| Language       | Scala 2.12                    |
+| Language       | Scala 2.13                    |
 | Build          | Maven 3.8+                    |
-| Processing     | Apache Spark 3.4.1            |
+| Processing     | Apache Spark 4.1.1            |
 | Streaming      | Spark Structured Streaming    |
-| Message Queue  | Apache Kafka 7.5.0 (Confluent)|
-| Storage        | Delta Lake 2.4.0              |
+| Message Queue  | Apache Kafka 4.2.0            |
+| Storage        | Delta Lake 4.0.0              |
 | HTTP Client    | sttp 3.9.0                    |
 | JSON           | Circe 0.14.6                  |
 | Config         | Typesafe Config 1.4.2         |
