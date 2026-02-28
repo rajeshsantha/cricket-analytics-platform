@@ -36,30 +36,61 @@ Cricsheet (JSON files) → CricsheetIngestionJob → Bronze → Silver → GoldB
 
 ## Prerequisites
 
-| Tool       | Version    | Install                            |
-|------------|------------|------------------------------------|
-| Java       | 11         | `brew install openjdk@11`          |
-| Scala      | 2.12.18    | `brew install scala`               |
-| Maven      | 3.8+       | `brew install maven`               |
-| Docker     | Latest     | `brew install --cask docker`       |
-| Python     | 3.9+       | `brew install python`              |
-| Spark      | 3.4.1      | `brew install apache-spark`        |
+Only **3 things** needed on your Mac — everything else is automated:
+
+| Tool | How to install | Purpose |
+|------|----------------|---------|
+| **Java 11** | `brew install openjdk@11` | Runs Spark |
+| **Maven** | `brew install maven` | Builds the fat JAR |
+| **Docker Desktop** | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) | Runs Kafka + Zookeeper + Kafka UI |
+
+> Apache Spark 3.4.1 is **downloaded automatically** by `setup_mac.sh` into a local `spark/` folder. No `brew install apache-spark` needed.
 
 ---
 
 ## Quick Start (macOS)
 
 ```bash
-# 1. Clone the repository
+# 1. Install prerequisites (one time)
+brew install openjdk@11 maven
+# Install Docker Desktop from https://www.docker.com/products/docker-desktop
+
+# 2. Clone the repo
 git clone https://github.com/rajeshsantha/cricket-analytics-platform.git
 cd cricket-analytics-platform
 
-# 2. Run the automated macOS setup script
+# 3. One-command setup: downloads Spark, starts Docker/Kafka, builds JAR
 bash scripts/setup_mac.sh
 
-# 3. Configure your API keys
-cp .env.example .env
-# Edit .env: set CRICAPI_KEY and CRICAPI_MATCH_ID
+# 4. Add your CricAPI key
+#    edit .env  →  CRICAPI_KEY=your_key_here
+
+# 5a. Run batch pipeline (Step 1 — Cricsheet)
+bash scripts/run_batch.sh /path/to/cricsheet/data
+
+# 5b. Run streaming pipeline (Step 2 — Live CricAPI)
+bash scripts/run_streaming.sh
+
+# 6. Open dashboards
+open http://localhost:8080    # Kafka UI
+cd visualization/streamlit && pip install -r requirements.txt && streamlit run app.py
+```
+
+## What Runs Where
+
+```
+Your Mac (host)                  Docker Containers
+──────────────────────           ──────────────────────────────────────
+Java 11          ✅              cricket-zookeeper    (port 2181)
+Maven            ✅              cricket-kafka        (port 9092)
+Docker Desktop   ✅              cricket-kafka-ui     (port 8080)
+Spark 3.4.1      ✅ (local)
+  └─ spark/current/bin/
+     spark-submit  ← used by
+     run_batch.sh
+     run_streaming.sh
+
+Kafka CLI        ✅ (in Docker)  ← docker exec cricket-kafka kafka-topics
 ```
 
 ---

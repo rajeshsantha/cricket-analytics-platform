@@ -1,24 +1,22 @@
 #!/bin/bash
-# Reset Kafka topics (delete and recreate) - use in development only
+# Delete and recreate all Kafka topics — dev reset, uses docker exec
 
-KAFKA_HOST="${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}"
-TOPICS=("cricket-live-balls" "cricket-live-matches" "cricket-batch")
+KAFKA_CONTAINER="${KAFKA_CONTAINER:-cricket-kafka}"
+KAFKA_INTERNAL_HOST="localhost:9092"
 
-echo "WARNING: This will delete and recreate all Kafka topics!"
-read -p "Are you sure? (y/N): " confirm
-if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-  echo "Aborted."
-  exit 0
-fi
+echo "=== Resetting Kafka topics ==="
 
-for topic in "${TOPICS[@]}"; do
-  echo "Deleting topic: $topic"
-  kafka-topics.sh --bootstrap-server "$KAFKA_HOST" --delete --topic "$topic" 2>/dev/null || true
+for topic in cricket-live-balls cricket-live-matches cricket-batch; do
+  echo "Deleting: $topic"
+  docker exec "$KAFKA_CONTAINER" kafka-topics \
+    --bootstrap-server "$KAFKA_INTERNAL_HOST" \
+    --delete --topic "$topic" 2>/dev/null || true
 done
 
-sleep 3
+echo "Waiting 5s for deletions to propagate..."
+sleep 5
 
 echo "Recreating topics..."
 bash "$(dirname "$0")/create_kafka_topics.sh"
 
-echo "Kafka topics reset complete."
+echo "Reset complete."
