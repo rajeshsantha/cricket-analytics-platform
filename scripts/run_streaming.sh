@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run all streaming jobs (Bronze → Silver → Gold)
+# Run streaming pipeline — no host spark-submit needed, runs fat JAR with java
 
 set -e
 
@@ -18,12 +18,14 @@ if [ ! -f "$JAR" ]; then
   cd "$PROJECT_DIR" && mvn clean package -DskipTests
 fi
 
-echo "Starting streaming pipeline..."
-spark-submit \
-  --class com.rajesh.cricket.Main \
-  --master "${SPARK_MASTER:-local[*]}" \
-  --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
-  --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
-  --conf "spark.driver.memory=2g" \
-  --conf "spark.executor.memory=2g" \
-  "$JAR" --mode streaming
+echo "Starting streaming pipeline (Bronze → Silver → Gold)..."
+echo "Kafka: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}"
+echo "Delta base: ${DELTA_BASE_PATH:-/tmp/cricket-delta}"
+
+java \
+  -Xmx2g \
+  -Dspark.master="${SPARK_MASTER:-local[*]}" \
+  -Dspark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+  -Dspark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
+  -cp "$JAR" \
+  com.rajesh.cricket.Main --mode streaming
