@@ -1,5 +1,14 @@
 # 🏏 Cricket Analytics Platform
 
+![Apache Spark](https://img.shields.io/badge/Apache%20Spark-4.1.1-E25A1C?logo=apachespark&logoColor=white)
+![Scala](https://img.shields.io/badge/Scala-2.13-DC322F?logo=scala&logoColor=white)
+![Delta Lake](https://img.shields.io/badge/Delta%20Lake-4.1.0-003366?logo=delta&logoColor=white)
+![Apache Kafka](https://img.shields.io/badge/Kafka-Streaming-231F20?logo=apachekafka&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![Airflow](https://img.shields.io/badge/Airflow-Orchestration-017CEE?logo=apacheairflow&logoColor=white)
+![License](https://img.shields.io/badge/Data-Cricsheet%20CC%20BY%204.0-green)
+
 > **A production-grade cricket analytics system** built with Scala, Apache Spark, Delta Lake,
 > and Streamlit. Ingests ball-by-ball data from Cricsheet and CricAPI, processes it through a
 > medallion architecture (Bronze → Silver → Gold), and serves 30 KPIs via an interactive dashboard.
@@ -11,6 +20,8 @@
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Architecture Diagram](#architecture-diagram)
+- [Dashboard Preview](#-dashboard-preview)
 - [Architecture](#architecture)
 - [Tournament Modes (Branch Strategy)](#-tournament-modes-branch-strategy)
 - [Prerequisites](#prerequisites)
@@ -24,6 +35,8 @@
 - [Kafka & Docker](#kafka--docker)
 - [Tests](#tests)
 - [Tech Stack](#tech-stack)
+- [Design Decisions](#-design-decisions)
+- [Future Improvements](#-future-improvements)
 - [Adding a New Tournament](#-adding-a-new-tournament)
 - [Author](#-author)
 - [License](#license)
@@ -50,6 +63,26 @@ The Cricket Analytics Platform is an end-to-end data engineering project that de
 | Dashboard | Streamlit + Plotly |
 | Orchestration | Apache Airflow (local) + GitHub Actions (CI/CD) |
 | Live Scores | CricAPI REST API |
+
+---
+
+
+
+![Architecture Diagram](docs/screenshots/ArchitectureDiagram.png)
+---
+
+## 📸 Dashboard Preview
+
+| Overview | Batting Analytics |
+|----------|-------------------|
+| ![Overview](docs/screenshots/overview.png) | ![Batting](docs/screenshots/batting.png) |
+
+| Venue & Toss | Live Score |
+|--------------|------------|
+| ![Venue](docs/screenshots/venue_toss.png) | ![Live Score](docs/screenshots/live_score.png) |
+
+> **Screenshots location:** Add your screenshots to `docs/screenshots/` and they will render above.
+> You can capture them from the live dashboard at [cricket-insights.streamlit.app](https://cricket-insights.streamlit.app).
 
 ---
 
@@ -539,6 +572,33 @@ mvn test
 | Orchestration | Apache Airflow |
 | CI/CD | GitHub Actions |
 | Cloud | Streamlit Cloud |
+
+---
+
+## 💡 Design Decisions
+
+| Technology | Why It Was Chosen |
+|-----------|-------------------|
+| **Apache Spark** | Handles large-scale batch processing of ball-by-ball data across thousands of matches. Spark SQL provides a natural way to express complex cricket KPIs as declarative queries. Structured Streaming enables real-time analytics with the same codebase. |
+| **Delta Lake** | Provides ACID transactions, schema enforcement, and time-travel on top of Parquet. The medallion architecture (Bronze → Silver → Gold) ensures data quality at each layer. Supports both batch and streaming writes to the same tables. |
+| **Apache Kafka** | Decouples the live data poller from the Spark processing pipeline. Enables backpressure handling, exactly-once semantics with Delta, and allows multiple consumers (dashboard, alerts) to read the same live ball-by-ball stream independently. |
+| **Streamlit** | Rapid prototyping of interactive dashboards with minimal frontend code. Native Plotly integration for rich charts. Streamlit Cloud provides free hosting with Git-based auto-deploy — push to a branch and the dashboard updates automatically. |
+| **Airflow** | Orchestrates the multi-step batch pipeline (build → ingest → transform → export → deploy) with dependency management, retries, and scheduling. The DAG provides clear visibility into pipeline health via the Airflow UI. |
+| **Branch-per-tournament** | Each tournament is an isolated deployment — data, thresholds, and dashboards are fully independent. A push to `feature/auto-refresh` never affects `tournament/ipl`. This mirrors how production teams manage environment-specific configurations. |
+
+---
+
+## 🔮 Future Improvements
+
+| Improvement | Description |
+|-------------|-------------|
+| **Kubernetes Deployment** | Deploy Spark jobs on Kubernetes (`spark-submit --master k8s://`) for elastic scaling and containerized execution instead of local mode. |
+| **Data Quality (Great Expectations)** | Add automated data validation between Bronze → Silver and Silver → Gold layers to catch schema drift, null spikes, and anomalous match data before it reaches the dashboard. |
+| **ML Player Predictions** | Train regression/classification models (Spark MLlib or scikit-learn) to predict player performance, match outcomes, and optimal batting order based on historical ball-by-ball data. |
+| **WebSocket Streaming** | Replace the CricAPI polling approach with WebSocket-based real-time streaming for sub-second score updates during live matches, reducing API call overhead. |
+| **Cloud Deployment (AWS/GCP)** | Migrate the pipeline to cloud-native services — S3/GCS for Delta storage, EMR/Dataproc for Spark, Managed Kafka (MSK/Confluent), and Cloud Composer for Airflow. |
+| **dbt for Transformations** | Replace hand-written SQL KPIs with dbt models for better documentation, testing, lineage tracking, and incremental materialization. |
+| **Alerting & Notifications** | Add Slack/email alerts when pipeline tasks fail, when new tournament matches are detected, or when a player breaks a record during live play. |
 
 ---
 
