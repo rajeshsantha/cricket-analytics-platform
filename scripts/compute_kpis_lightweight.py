@@ -90,8 +90,44 @@ def kpi_top_run_scorers(df):
         total_runs=("runs_batsman", "sum"),
         balls_faced=("batsman", "count"),
         matches=("match_id", "nunique"),
-    ).reset_index().sort_values("total_runs", ascending=False).head(10)
-    return g
+    ).reset_index()
+    # Innings count (unique match_id + inning combos per batsman)
+    innings = df.groupby("batsman").apply(
+        lambda x: x.groupby(["match_id", "inning"]).ngroups
+    ).reset_index(name="innings")
+    g = g.merge(innings, on="batsman", how="left")
+    # Dismissals (to compute not_outs)
+    dismissed = df[df["wicket_player_out"] == df["batsman"]].groupby("batsman").apply(
+        lambda x: x.groupby(["match_id", "inning"]).ngroups
+    ).reset_index(name="dismissals")
+    g = g.merge(dismissed, on="batsman", how="left").fillna({"dismissals": 0})
+    g["dismissals"] = g["dismissals"].astype(int)
+    g["not_outs"] = g["innings"] - g["dismissals"]
+    # Batting average
+    g["batting_average"] = g.apply(
+        lambda r: round(r["total_runs"] / r["dismissals"], 2) if r["dismissals"] > 0 else r["total_runs"],
+        axis=1,
+    )
+    # Strike rate
+    g["strike_rate"] = round(g["total_runs"] * 100.0 / g["balls_faced"], 2)
+    # Highest score per batsman
+    hs = df.groupby(["batsman", "match_id", "inning"]).agg(
+        innings_score=("runs_batsman", "sum")
+    ).reset_index()
+    # Check if batsman was not out in that innings
+    dismissed_innings = df[df["wicket_player_out"] == df["batsman"]].groupby(
+        ["batsman", "match_id", "inning"]
+    ).size().reset_index(name="_dismissed")
+    hs = hs.merge(dismissed_innings, on=["batsman", "match_id", "inning"], how="left")
+    hs["not_out"] = hs["_dismissed"].isna()
+    # Build highest score string (e.g. "85" or "52*")
+    best = hs.sort_values(["batsman", "innings_score"], ascending=[True, False]).drop_duplicates("batsman")
+    best["highest_score"] = best.apply(
+        lambda r: f"{int(r['innings_score'])}*" if r["not_out"] else str(int(r["innings_score"])),
+        axis=1,
+    )
+    g = g.merge(best[["batsman", "highest_score"]], on="batsman", how="left")
+    return g.sort_values("total_runs", ascending=False)
 
 def kpi_top_wicket_takers(df):
     wk = df[df["wicket_kind"].notna() & ~df["wicket_kind"].isin(["run out", "retired hurt", "obstructing the field"])]

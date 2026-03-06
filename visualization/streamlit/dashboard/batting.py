@@ -27,13 +27,43 @@ def render(delta_base: str) -> None:
         df = df.sort_values("total_runs", ascending=False).reset_index(drop=True)
         df.index += 1
 
-        col1, col2 = st.columns([1, 2])
+        # Ensure numeric columns
+        for c in ["total_runs", "balls_faced", "matches", "innings", "not_outs",
+                   "batting_average", "strike_rate"]:
+            if c in df.columns:
+                df[c] = pd.to_numeric(df[c], errors="coerce")
+
+        # Build display columns
+        display_cols = ["player_display", "team", "matches"]
+        rename_map = {"player_display": "Player"}
+        if "innings" in df.columns:
+            display_cols.append("innings")
+            rename_map["innings"] = "Innings"
+        if "batting_average" in df.columns:
+            display_cols.append("batting_average")
+            rename_map["batting_average"] = "Bat Avg"
+        display_cols.append("total_runs")
+        rename_map["total_runs"] = "Runs"
+        if "not_outs" in df.columns:
+            display_cols.append("not_outs")
+            rename_map["not_outs"] = "Not Outs"
+        if "strike_rate" in df.columns:
+            display_cols.append("strike_rate")
+            rename_map["strike_rate"] = "Strike Rate"
+        if "highest_score" in df.columns:
+            display_cols.append("highest_score")
+            rename_map["highest_score"] = "Highest Score"
+
+        col1, col2 = st.columns([3, 2])
         with col1:
-            st.dataframe(df[["player_display", "team", "total_runs", "balls_faced", "matches"]].rename(
-                columns={"player_display": "Player"}),
-                use_container_width=True, height=400)
+            st.dataframe(
+                df[display_cols].rename(columns=rename_map),
+                use_container_width=True,
+                height=min(600, 40 + 35 * len(df)),
+            )
         with col2:
-            fig = px.bar(df, x="player_display", y="total_runs", text="total_runs",
+            top_chart = df.head(15)
+            fig = px.bar(top_chart, x="player_display", y="total_runs", text="total_runs",
                          color="total_runs", color_continuous_scale="YlOrRd")
             fig.update_layout(xaxis_title="", yaxis_title="Runs",
                               coloraxis_showscale=False, height=400)
