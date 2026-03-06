@@ -107,7 +107,22 @@ def render(delta_base: str) -> None:
     st.subheader("📈 Average Run-Rate Progression (over by over)")
     rr = load_kpi(delta_base, "run_rate_progression")
     if not rr.empty:
-        fig = px.line(rr, x="over_num", y="avg_run_rate", color="match_type",
+        teams = sorted(rr["team"].unique()) if "team" in rr.columns else []
+        selected_team = st.selectbox("Select Team", ["All Teams"] + teams,
+                                     key="overview_rr_team")
+        if selected_team != "All Teams" and "team" in rr.columns:
+            rr_plot = rr[rr["team"] == selected_team]
+        else:
+            # Show overall average across all teams
+            rr_plot = rr.groupby(["match_type", "over_num"], as_index=False).agg(
+                avg_runs_per_over=("avg_runs_per_over", "mean"),
+                avg_run_rate=("avg_run_rate", "mean"),
+            )
+            rr_plot["avg_runs_per_over"] = rr_plot["avg_runs_per_over"].round(2)
+            rr_plot["avg_run_rate"] = rr_plot["avg_run_rate"].round(2)
+
+        fig = px.line(rr_plot, x="over_num", y="avg_run_rate",
+                      color="match_type" if "match_type" in rr_plot.columns else None,
                       markers=True)
         fig.update_layout(xaxis_title="Over", yaxis_title="Avg Run Rate",
                           height=380)
