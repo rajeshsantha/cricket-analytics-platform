@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Lightweight KPI computation — pure Python/Pandas, no Spark.
+Cricket Analytics Platform — Lightweight KPI Computation
+Author: Rajesh Santha
 
 Reads all Cricsheet JSON files, flattens ball-by-ball data, computes
 the same 30 Gold KPIs that the Spark pipeline does, and writes them

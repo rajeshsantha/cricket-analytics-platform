@@ -1,3 +1,9 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Silver batch layer — flattens and cleans Bronze data into analytical tables.
+ */
 package com.rajesh.cricket.silver
 
 import com.rajesh.cricket.config.AppConfig

@@ -1,3 +1,9 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Cricsheet ingestion — reads raw JSON match files and writes to the Bronze Delta table.
+ */
 package com.rajesh.cricket.ingestion.batch
 
 import com.rajesh.cricket.config.AppConfig

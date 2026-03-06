@@ -1,3 +1,9 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Silver streaming layer — transforms Bronze streaming data into clean, typed records.
+ */
 package com.rajesh.cricket.silver
 
 import com.rajesh.cricket.config.AppConfig
