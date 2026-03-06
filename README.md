@@ -66,7 +66,7 @@ The Cricket Analytics Platform is an end-to-end data engineering project that de
 
 ---
 
-
+## Architecture Diagram
 
 ![Architecture Diagram](docs/screenshots/ArchitectureDiagram.png)
 ---
