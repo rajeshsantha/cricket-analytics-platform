@@ -308,17 +308,19 @@ def kpi_pressure_index_per_over(df):
     return g
 
 def kpi_run_rate_progression(df):
-    g = df.groupby(["over_num", "match_type"]).agg(
+    # Per-team run-rate progression (grouped by batting team + over)
+    g = df.groupby(["inning", "over_num", "match_type"]).agg(
         total_runs=("runs_total", "sum"),
-        total_overs=("match_id", "nunique"),  # approximate
+        total_overs=("match_id", "nunique"),
     ).reset_index()
+    g = g.rename(columns={"inning": "team"})
     g["avg_runs_per_over"] = round(g["total_runs"] / g["total_overs"], 2)
-    # Cumulative avg run rate
-    g = g.sort_values("over_num")
-    g["cumulative_runs"] = g.groupby("match_type")["total_runs"].cumsum()
-    g["cumulative_overs"] = g.groupby("match_type")["total_overs"].cumsum()
+    # Cumulative avg run rate per team
+    g = g.sort_values(["team", "over_num"])
+    g["cumulative_runs"] = g.groupby(["match_type", "team"])["total_runs"].cumsum()
+    g["cumulative_overs"] = g.groupby(["match_type", "team"])["total_overs"].cumsum()
     g["avg_run_rate"] = round(g["cumulative_runs"] / g["cumulative_overs"], 2)
-    return g[["match_type", "over_num", "avg_runs_per_over", "avg_run_rate"]]
+    return g[["match_type", "team", "over_num", "avg_runs_per_over", "avg_run_rate"]]
 
 def kpi_extras_analysis(df):
     g = df.groupby(["inning", "match_type"]).agg(
