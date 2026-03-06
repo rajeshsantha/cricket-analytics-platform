@@ -3,7 +3,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from .helpers import load_kpi, no_data_warning
+from .helpers import (load_kpi, no_data_warning, enrich_player_df, team_filter,
+                      flagged_name)
 
 
 def render(delta_base: str) -> None:
@@ -17,19 +18,22 @@ def render(delta_base: str) -> None:
 
     # ── Tab 0: Top Run Scorers (KPI 1) ───────────────────────────────────────
     with tabs[0]:
-        st.subheader("Top 10 Run Scorers — All Time")
+        st.subheader("Top Run Scorers")
         df = load_kpi(delta_base, "top_run_scorers")
         if df.empty:
             no_data_warning("top_run_scorers"); return
+        df = enrich_player_df(df, "batsman")
+        df = team_filter(df, key="bat_top_team")
         df = df.sort_values("total_runs", ascending=False).reset_index(drop=True)
         df.index += 1
 
         col1, col2 = st.columns([1, 2])
         with col1:
-            st.dataframe(df[["batsman", "total_runs", "balls_faced", "matches"]],
-                         use_container_width=True, height=400)
+            st.dataframe(df[["player_display", "team", "total_runs", "balls_faced", "matches"]].rename(
+                columns={"player_display": "Player"}),
+                use_container_width=True, height=400)
         with col2:
-            fig = px.bar(df, x="batsman", y="total_runs", text="total_runs",
+            fig = px.bar(df, x="player_display", y="total_runs", text="total_runs",
                          color="total_runs", color_continuous_scale="YlOrRd")
             fig.update_layout(xaxis_title="", yaxis_title="Runs",
                               coloraxis_showscale=False, height=400)
@@ -37,33 +41,39 @@ def render(delta_base: str) -> None:
 
     # ── Tab 1: Best Batting Average (KPI 3) ──────────────────────────────────
     with tabs[1]:
-        st.subheader("Best Batting Average (min 20 innings)")
+        st.subheader("Best Batting Average (min 3 innings)")
         df = load_kpi(delta_base, "best_batting_average")
         if df.empty:
             no_data_warning("best_batting_average"); return
+        df = enrich_player_df(df, "batsman")
+        df = team_filter(df, key="bat_avg_team")
         df = df.sort_values("batting_average", ascending=False).head(20)
-        fig = px.bar(df, x="batsman", y="batting_average", text="batting_average",
+        fig = px.bar(df, x="player_display", y="batting_average", text="batting_average",
                      color="batting_average", color_continuous_scale="Greens")
         fig.update_layout(xaxis_title="", yaxis_title="Average",
                           coloraxis_showscale=False, height=420)
         st.plotly_chart(fig, use_container_width=True)
         with st.expander("View data"):
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df[["player_display", "team", "batting_average", "total_runs", "innings", "dismissals"]].rename(
+                columns={"player_display": "Player"}), use_container_width=True)
 
     # ── Tab 2: Best Strike Rate (KPI 5) ──────────────────────────────────────
     with tabs[2]:
-        st.subheader("Best Strike Rate (min 500 balls)")
+        st.subheader("Best Strike Rate (min 30 balls)")
         df = load_kpi(delta_base, "best_strike_rate")
         if df.empty:
             no_data_warning("best_strike_rate"); return
+        df = enrich_player_df(df, "batsman")
+        df = team_filter(df, key="bat_sr_team")
         df = df.sort_values("strike_rate", ascending=False).head(20)
-        fig = px.bar(df, x="batsman", y="strike_rate", text="strike_rate",
+        fig = px.bar(df, x="player_display", y="strike_rate", text="strike_rate",
                      color="strike_rate", color_continuous_scale="Reds")
         fig.update_layout(xaxis_title="", yaxis_title="Strike Rate",
                           coloraxis_showscale=False, height=420)
         st.plotly_chart(fig, use_container_width=True)
         with st.expander("View data"):
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df[["player_display", "team", "strike_rate", "total_runs", "balls_faced"]].rename(
+                columns={"player_display": "Player"}), use_container_width=True)
 
     # ── Tab 3: Highest Individual Scores (KPI 7) ─────────────────────────────
     with tabs[3]:
@@ -71,10 +81,13 @@ def render(delta_base: str) -> None:
         df = load_kpi(delta_base, "highest_individual_scores")
         if df.empty:
             no_data_warning("highest_individual_scores"); return
+        df = enrich_player_df(df, "batsman")
+        df = team_filter(df, key="bat_hi_team")
         df = df.sort_values("score", ascending=False).head(20).reset_index(drop=True)
         df.index += 1
         st.dataframe(
-            df[["batsman", "score", "balls_faced", "match_type", "match_id"]],
+            df[["player_display", "team", "score", "balls_faced", "match_type", "match_id"]].rename(
+                columns={"player_display": "Player"}),
             use_container_width=True, height=500,
         )
 
@@ -87,8 +100,9 @@ def render(delta_base: str) -> None:
             if df.empty:
                 no_data_warning("most_sixes")
             else:
+                df = enrich_player_df(df, "batsman")
                 df = df.sort_values("sixes", ascending=True).tail(15)
-                fig = px.bar(df, x="sixes", y="batsman", orientation="h",
+                fig = px.bar(df, x="sixes", y="player_display", orientation="h",
                              text="sixes", color="sixes",
                              color_continuous_scale="Purples")
                 fig.update_layout(yaxis_title="", xaxis_title="Sixes",
@@ -100,8 +114,9 @@ def render(delta_base: str) -> None:
             if df.empty:
                 no_data_warning("most_fours")
             else:
+                df = enrich_player_df(df, "batsman")
                 df = df.sort_values("fours", ascending=True).tail(15)
-                fig = px.bar(df, x="fours", y="batsman", orientation="h",
+                fig = px.bar(df, x="fours", y="player_display", orientation="h",
                              text="fours", color="fours",
                              color_continuous_scale="Oranges")
                 fig.update_layout(yaxis_title="", xaxis_title="Fours",
@@ -114,19 +129,22 @@ def render(delta_base: str) -> None:
         df = load_kpi(delta_base, "player_by_match_type")
         if df.empty:
             no_data_warning("player_by_match_type"); return
+        df = enrich_player_df(df, "batsman")
         mt = st.selectbox("Match type", df["match_type"].unique(), key="bat_mt")
-        subset = df[df["match_type"] == mt].sort_values("total_runs", ascending=False).head(15).copy()
+        subset = df[df["match_type"] == mt].copy()
+        subset = team_filter(subset, key="bat_mt_team")
+        subset = subset.sort_values("total_runs", ascending=False).head(15)
         for c in ["balls_faced", "total_runs", "strike_rate"]:
             subset[c] = pd.to_numeric(subset[c], errors="coerce")
         subset = subset.dropna(subset=["strike_rate"])
         fig = px.scatter(subset, x="balls_faced", y="total_runs", size="strike_rate",
-                         color="strike_rate", hover_name="batsman",
-                         color_continuous_scale="Turbo",
+                         color="team", hover_name="player_display",
                          labels={"balls_faced": "Balls Faced", "total_runs": "Total Runs"})
         fig.update_layout(height=500)
         st.plotly_chart(fig, use_container_width=True)
         with st.expander("View data"):
-            st.dataframe(subset, use_container_width=True)
+            st.dataframe(subset[["player_display", "team", "total_runs", "balls_faced", "strike_rate"]].rename(
+                columns={"player_display": "Player"}), use_container_width=True)
 
     # ── Tab 6: Top Partnerships (KPI 19) ─────────────────────────────────────
     with tabs[6]:
@@ -134,9 +152,10 @@ def render(delta_base: str) -> None:
         df = load_kpi(delta_base, "partnership_analysis")
         if df.empty:
             no_data_warning("partnership_analysis"); return
+        df = enrich_player_df(df, "batsman")
         df = df.sort_values("partnership_runs", ascending=False).head(20).reset_index(drop=True)
         df.index += 1
-        df["pair"] = df["batsman"] + " & " + df["non_striker"]
+        df["pair"] = df["player_display"] + " & " + df["non_striker"].map(flagged_name)
         fig = px.bar(df, x="pair", y="partnership_runs", text="partnership_runs",
                      color="partnership_runs", color_continuous_scale="Sunset")
         fig.update_layout(xaxis_title="", yaxis_title="Runs",
@@ -150,14 +169,17 @@ def render(delta_base: str) -> None:
         df = load_kpi(delta_base, "player_consistency")
         if df.empty:
             no_data_warning("player_consistency"); return
+        df = enrich_player_df(df, "batsman")
+        df = team_filter(df, key="bat_cons_team")
         df = df.sort_values("score_stddev", ascending=True).head(20)
-        fig = px.scatter(df, x="avg_score", y="score_stddev", hover_name="batsman",
-                         size="innings", color="match_type",
+        fig = px.scatter(df, x="avg_score", y="score_stddev", hover_name="player_display",
+                         size="innings", color="team",
                          labels={"avg_score": "Avg Score", "score_stddev": "Std Dev"})
         fig.update_layout(height=480)
         st.plotly_chart(fig, use_container_width=True)
         with st.expander("View data"):
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df[["player_display", "team", "avg_score", "score_stddev", "innings"]].rename(
+                columns={"player_display": "Player"}), use_container_width=True)
 
     # ── Tab 8: Win Contribution (KPI 30) ─────────────────────────────────────
     with tabs[8]:
@@ -165,13 +187,15 @@ def render(delta_base: str) -> None:
         df = load_kpi(delta_base, "win_contribution")
         if df.empty:
             no_data_warning("win_contribution"); return
+        df = enrich_player_df(df, "batsman")
+        df = team_filter(df, key="bat_wc_team")
         df = df.sort_values("win_contribution_pct", ascending=False).head(20)
-        fig = px.bar(df, x="batsman", y="win_contribution_pct",
-                     text="win_contribution_pct", color="match_type",
+        fig = px.bar(df, x="player_display", y="win_contribution_pct",
+                     text="win_contribution_pct", color="team",
                      barmode="group")
         fig.update_layout(xaxis_title="", yaxis_title="Win Contribution %",
                           height=420, xaxis_tickangle=-45)
         st.plotly_chart(fig, use_container_width=True)
         with st.expander("View data"):
-            st.dataframe(df, use_container_width=True)
-
+            st.dataframe(df[["player_display", "team", "win_contribution_pct", "winning_runs", "total_runs", "matches"]].rename(
+                columns={"player_display": "Player"}), use_container_width=True)

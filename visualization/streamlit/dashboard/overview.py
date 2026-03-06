@@ -2,7 +2,8 @@
 
 import streamlit as st
 import plotly.express as px
-from .helpers import load_kpi, no_data_warning
+from .helpers import (load_kpi, no_data_warning, enrich_player_df, flag,
+                      flagged_name)
 
 
 def render(delta_base: str) -> None:
@@ -22,25 +23,33 @@ def render(delta_base: str) -> None:
     with c1:
         if not top_scorers.empty:
             row = top_scorers.sort_values("total_runs", ascending=False).iloc[0]
-            st.metric("🏏 Top Run Scorer", row["batsman"], f"{int(row['total_runs']):,} runs")
+            st.metric("🏏 Top Run Scorer",
+                      flagged_name(row["batsman"]),
+                      f"↑ {int(row['total_runs']):,} runs")
         else:
             st.metric("🏏 Top Run Scorer", "—")
     with c2:
         if not top_wickets.empty:
             row = top_wickets.sort_values("wickets", ascending=False).iloc[0]
-            st.metric("🎳 Top Wicket Taker", row["bowler"], f"{int(row['wickets'])} wkts")
+            st.metric("🎳 Top Wicket Taker",
+                      flagged_name(row["bowler"]),
+                      f"↑ {int(row['wickets'])} wkts")
         else:
             st.metric("🎳 Top Wicket Taker", "—")
     with c3:
         if not most_sixes.empty:
             row = most_sixes.sort_values("sixes", ascending=False).iloc[0]
-            st.metric("💥 Most Sixes", row["batsman"], f"{int(row['sixes'])} sixes")
+            st.metric("💥 Most Sixes",
+                      flagged_name(row["batsman"]),
+                      f"↑ {int(row['sixes'])} sixes")
         else:
             st.metric("💥 Most Sixes", "—")
     with c4:
         if not most_fours.empty:
             row = most_fours.sort_values("fours", ascending=False).iloc[0]
-            st.metric("🏓 Most Fours", row["batsman"], f"{int(row['fours'])} fours")
+            st.metric("🏓 Most Fours",
+                      flagged_name(row["batsman"]),
+                      f"↑ {int(row['fours'])} fours")
         else:
             st.metric("🏓 Most Fours", "—")
 
@@ -52,8 +61,9 @@ def render(delta_base: str) -> None:
     with col_a:
         st.subheader("🏏 Top 10 Run Scorers")
         if not top_scorers.empty:
-            df = top_scorers.sort_values("total_runs", ascending=True)
-            fig = px.bar(df, x="total_runs", y="batsman", orientation="h",
+            df = enrich_player_df(top_scorers, "batsman")
+            df = df.sort_values("total_runs", ascending=True)
+            fig = px.bar(df, x="total_runs", y="player_display", orientation="h",
                          text="total_runs", color="total_runs",
                          color_continuous_scale="Oranges")
             fig.update_layout(yaxis_title="", xaxis_title="Runs", showlegend=False,
@@ -65,8 +75,9 @@ def render(delta_base: str) -> None:
     with col_b:
         st.subheader("🎳 Top 10 Wicket Takers")
         if not top_wickets.empty:
-            df = top_wickets.sort_values("wickets", ascending=True)
-            fig = px.bar(df, x="wickets", y="bowler", orientation="h",
+            df = enrich_player_df(top_wickets, "bowler")
+            df = df.sort_values("wickets", ascending=True)
+            fig = px.bar(df, x="wickets", y="player_display", orientation="h",
                          text="wickets", color="wickets",
                          color_continuous_scale="Blues")
             fig.update_layout(yaxis_title="", xaxis_title="Wickets", showlegend=False,
@@ -81,8 +92,10 @@ def render(delta_base: str) -> None:
     st.subheader("🏆 Most Wins by Team")
     wins = load_kpi(delta_base, "most_wins_by_team")
     if not wins.empty:
+        wins = wins.copy()
+        wins["team_display"] = wins["team"].map(lambda t: f"{flag(t)} {t}")
         fig = px.bar(wins.sort_values("wins", ascending=False).head(15),
-                     x="team", y="wins", color="match_type",
+                     x="team_display", y="wins", color="match_type",
                      barmode="group", text_auto=True)
         fig.update_layout(xaxis_title="", yaxis_title="Wins", height=420)
         st.plotly_chart(fig, use_container_width=True)
