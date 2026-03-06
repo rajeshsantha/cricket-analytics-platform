@@ -25,15 +25,21 @@ DELTA_BASE = st.sidebar.text_input(
 
 PAGES = [
     "🏠 Overview",
+    "📡 Live Score",
     "🏏 Batting",
     "🎳 Bowling",
     "👥 Team Analytics",
     "🏟️ Venue & Toss",
     "📈 Match Trends",
-    "📊 Live Scorecard",
+    "📊 Live Scorecard (Spark)",
 ]
 
-page = st.sidebar.radio("Navigate", PAGES)
+# Default to Live Score if match_id is in query params
+default_idx = 0
+if st.query_params.get("match_id"):
+    default_idx = 1
+
+page = st.sidebar.radio("Navigate", PAGES, index=default_idx)
 
 st.sidebar.markdown("---")
 st.sidebar.caption(
@@ -47,20 +53,23 @@ if page == PAGES[0]:
     from dashboard import overview
     overview.render(DELTA_BASE)
 elif page == PAGES[1]:
+    from dashboard import live_score
+    live_score.render(DELTA_BASE)
+elif page == PAGES[2]:
     from dashboard import batting
     batting.render(DELTA_BASE)
-elif page == PAGES[2]:
+elif page == PAGES[3]:
     from dashboard import bowling
     bowling.render(DELTA_BASE)
-elif page == PAGES[3]:
+elif page == PAGES[4]:
     from dashboard import team_analytics
     team_analytics.render(DELTA_BASE)
-elif page == PAGES[4]:
+elif page == PAGES[5]:
     from dashboard import venue_toss
     venue_toss.render(DELTA_BASE)
-elif page == PAGES[5]:
+elif page == PAGES[6]:
     from dashboard import match_trends
     match_trends.render(DELTA_BASE)
-elif page == PAGES[6]:
+elif page == PAGES[7]:
     from dashboard import live_scorecard
     live_scorecard.render(DELTA_BASE)
