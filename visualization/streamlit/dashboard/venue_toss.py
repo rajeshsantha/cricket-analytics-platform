@@ -2,7 +2,7 @@
 
 import streamlit as st
 import plotly.express as px
-from .helpers import load_kpi, no_data_warning
+from .helpers import load_kpi, no_data_warning, chart_type_selector, render_chart
 
 
 def render(delta_base: str) -> None:
@@ -59,13 +59,10 @@ def render(delta_base: str) -> None:
         if "match_type" in df.columns:
             mt = st.selectbox("Match type", df["match_type"].unique(), key="venue_mt")
             df = df[df["match_type"] == mt]
-        df = df.sort_values("avg_score", ascending=True).tail(20)
-        fig = px.bar(df, x="avg_score", y="venue", orientation="h",
-                     color="avg_score", text="avg_score",
-                     color_continuous_scale="YlOrRd")
-        fig.update_layout(yaxis_title="", xaxis_title="Avg Score",
-                          coloraxis_showscale=False, height=550)
-        st.plotly_chart(fig, use_container_width=True)
+        df = df.sort_values("avg_score", ascending=False).head(20)
+        ct = chart_type_selector(key="venue_avg_chart", default="Horizontal Bar")
+        render_chart(df, "venue", "avg_score", ct,
+                     "YlOrRd", "Avg Score", height=550)
 
     # ── Tab 3: Home vs Away Win % (KPI 26) ──────────────────────────────────
     with tabs[3]:

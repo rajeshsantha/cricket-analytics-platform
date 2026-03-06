@@ -177,3 +177,73 @@ def no_data_warning(kpi_name: str) -> None:
         "Run the batch pipeline first:\n\n"
         "```bash\nbash scripts/run_batch.sh /path/to/cricsheet\n```"
     )
+
+
+# ─── Chart type selector & universal renderer ────────────────────────────────
+
+CHART_TYPES = ["Bar", "Horizontal Bar", "Pie", "Donut", "Treemap"]
+
+
+def chart_type_selector(key: str, default: str = "Bar",
+                        label: str = "📊 Chart Type") -> str:
+    """Render a chart-type selectbox and return the chosen type."""
+    return st.selectbox(label, CHART_TYPES, index=CHART_TYPES.index(default),
+                        key=key)
+
+
+def render_chart(df: pd.DataFrame, name_col: str, value_col: str,
+                 chart_type: str, color_scale: str = "Blues",
+                 axis_label: str = "", height: int = 420,
+                 text_col: str | None = None, **bar_kwargs) -> None:
+    """Render a chart in the selected format (Bar/HBar/Pie/Donut/Treemap).
+
+    Parameters
+    ----------
+    df          : DataFrame with at least *name_col* and *value_col*.
+    name_col    : Column used for labels / category axis.
+    value_col   : Column used for values / measure axis.
+    chart_type  : One of CHART_TYPES.
+    color_scale : Plotly sequential color scale name (for bar/treemap).
+    axis_label  : Label for the value axis.
+    height      : Chart height in pixels.
+    text_col    : Column to show as text on bars (defaults to *value_col*).
+    **bar_kwargs: Extra kwargs forwarded to px.bar (e.g. barmode, color).
+    """
+    import plotly.express as px
+
+    txt = text_col or value_col
+
+    if chart_type == "Bar":
+        fig = px.bar(df, x=name_col, y=value_col, text=txt,
+                     color=bar_kwargs.pop("color", value_col),
+                     color_continuous_scale=color_scale, **bar_kwargs)
+        fig.update_layout(xaxis_title="", yaxis_title=axis_label,
+                          coloraxis_showscale=False, height=height,
+                          xaxis_tickangle=-45)
+
+    elif chart_type == "Horizontal Bar":
+        df_sorted = df.sort_values(value_col, ascending=True)
+        fig = px.bar(df_sorted, x=value_col, y=name_col, orientation="h",
+                     text=txt, color=bar_kwargs.pop("color", value_col),
+                     color_continuous_scale=color_scale, **bar_kwargs)
+        fig.update_layout(yaxis_title="", xaxis_title=axis_label,
+                          coloraxis_showscale=False, height=height)
+
+    elif chart_type in ("Pie", "Donut"):
+        fig = px.pie(df, values=value_col, names=name_col)
+        if chart_type == "Donut":
+            fig.update_traces(hole=0.4)
+        fig.update_layout(height=height, showlegend=True,
+                          legend=dict(font=dict(size=10)))
+
+    elif chart_type == "Treemap":
+        fig = px.treemap(df, path=[name_col], values=value_col,
+                         color=value_col, color_continuous_scale=color_scale)
+        fig.update_layout(height=height, coloraxis_showscale=False)
+
+    else:
+        fig = px.bar(df, x=name_col, y=value_col, text=txt)
+        fig.update_layout(xaxis_title="", yaxis_title=axis_label, height=height)
+
+    st.plotly_chart(fig, use_container_width=True)
+
