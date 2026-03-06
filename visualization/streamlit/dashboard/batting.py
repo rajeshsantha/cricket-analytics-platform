@@ -1,6 +1,7 @@
 """Batting page — KPIs 1, 3, 5, 7, 8, 9, 18, 19, 28, 30."""
 
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 from .helpers import load_kpi, no_data_warning
 
@@ -114,7 +115,10 @@ def render(delta_base: str) -> None:
         if df.empty:
             no_data_warning("player_by_match_type"); return
         mt = st.selectbox("Match type", df["match_type"].unique(), key="bat_mt")
-        subset = df[df["match_type"] == mt].sort_values("total_runs", ascending=False).head(15)
+        subset = df[df["match_type"] == mt].sort_values("total_runs", ascending=False).head(15).copy()
+        for c in ["balls_faced", "total_runs", "strike_rate"]:
+            subset[c] = pd.to_numeric(subset[c], errors="coerce")
+        subset = subset.dropna(subset=["strike_rate"])
         fig = px.scatter(subset, x="balls_faced", y="total_runs", size="strike_rate",
                          color="strike_rate", hover_name="batsman",
                          color_continuous_scale="Turbo",

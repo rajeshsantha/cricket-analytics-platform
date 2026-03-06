@@ -38,12 +38,12 @@ Cricsheet (JSON files) → CricsheetIngestionJob → Bronze → Silver → GoldB
 
 | Tool       | Version    | Install                            |
 |------------|------------|------------------------------------|
-| Java       | 11         | `brew install openjdk@11`          |
-| Scala      | 2.12.18    | `brew install scala`               |
+| Java       | 21         | `brew install openjdk@21`          |
+| Scala      | 2.13.17    | `brew install scala`               |
 | Maven      | 3.8+       | `brew install maven`               |
 | Docker     | Latest     | `brew install --cask docker`       |
 | Python     | 3.9+       | `brew install python`              |
-| Spark      | 3.4.1      | `brew install apache-spark`        |
+| Spark      | 4.1.1      | `brew install apache-spark`        |
 
 ---
 
@@ -190,16 +190,39 @@ Kafka topics created:
 
 ## Streamlit Dashboard
 
+### Live demo: [cricket-insights.streamlit.app](https://cricket-insights.streamlit.app)
+
+### Run locally
 ```bash
 cd visualization/streamlit
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Opens at **http://localhost:8501** with three tabs:
-- **Live Scorecard** — Current run rate, wickets, batsman/bowler (auto-refreshes every 5s)
-- **Player Stats** — Top batsmen and bowlers from Gold batch KPIs
-- **Pressure Chart** — Over-by-over pressure index, color-coded by level
+Opens at **http://localhost:8501** with 7 interactive pages:
+
+| Page | KPIs | Charts |
+|------|------|--------|
+| 🏠 **Overview** | 1, 2, 8, 9, 17, 24 | Headline metrics, bar charts, run-rate line |
+| 🏏 **Batting** | 1, 3, 5, 7, 8, 9, 18, 19, 28, 30 | Bar charts, scatter plots, tables (9 tabs) |
+| 🎳 **Bowling** | 2, 4, 6, 11, 20, 29 | Horizontal bars, sortable tables (6 tabs) |
+| 👥 **Team Analytics** | 10, 15, 16, 17, 22, 25, 27 | Grouped bars, stacked bars, head-to-head (7 tabs) |
+| 🏟️ **Venue & Toss** | 12, 13, 14, 26 | Grouped bars, pie chart, venue ranking (4 tabs) |
+| 📈 **Match Trends** | 21, 23, 24 | Phase analysis, pressure index, run-rate area (3 tabs) |
+| 📊 **Live Scorecard** | Streaming KPIs | Real-time metrics with auto-refresh |
+
+### Deploy to Streamlit Cloud
+The dashboard ships pre-computed Gold KPI data as Parquet files in `visualization/streamlit/data/`.
+This means it works on **Streamlit Cloud** without Spark, Kafka, or Delta Lake installed.
+
+To refresh the bundled data after re-running the batch pipeline:
+```bash
+cd visualization/streamlit
+python export_data.py      # exports Delta tables → data/*.parquet
+git add data/
+git commit -m "refresh KPI data"
+git push
+```
 
 ---
 
@@ -265,7 +288,7 @@ The `GoldBatchKPIs` job computes:
 | Processing     | Apache Spark 4.1.1            |
 | Streaming      | Spark Structured Streaming    |
 | Message Queue  | Apache Kafka 4.2.0            |
-| Storage        | Delta Lake 4.0.0              |
+| Storage        | Delta Lake 4.1.0                |
 | HTTP Client    | sttp 3.9.0                    |
 | JSON           | Circe 0.14.6                  |
 | Config         | Typesafe Config 1.4.2         |

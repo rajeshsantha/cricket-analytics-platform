@@ -22,13 +22,18 @@ def render(delta_base: str) -> None:
 
     live_path = os.path.join(delta_base, "gold", "live_kpis")
 
-    try:
-        dt = DeltaTable(live_path)
-        df = dt.to_pandas()
-    except Exception:
+    df = pd.DataFrame()
+    if DeltaTable is not None and os.path.isdir(live_path):
+        try:
+            df = DeltaTable(live_path).to_pandas()
+        except Exception:
+            pass
+
+    if df.empty:
         st.info(
-            "No live KPI data found. Start the **streaming pipeline** first:\n\n"
-            "```bash\nbash scripts/run_streaming.sh\n```"
+            "No live KPI data found. The **Live Scorecard** requires the streaming pipeline.\n\n"
+            "```bash\nbash scripts/run_streaming.sh\n```\n\n"
+            "Use the other tabs to explore batch analytics from Cricsheet data."
         )
         return
 

@@ -40,23 +40,23 @@ st.sidebar.caption("Powered by Apache Spark · Delta Lake · Streamlit")
 
 # ─── Route to page modules ────────────────────────────────────────────────────
 if page == PAGES[0]:
-    from pages import overview
+    from dashboard import overview
     overview.render(DELTA_BASE)
 elif page == PAGES[1]:
-    from pages import batting
+    from dashboard import batting
     batting.render(DELTA_BASE)
 elif page == PAGES[2]:
-    from pages import bowling
+    from dashboard import bowling
     bowling.render(DELTA_BASE)
 elif page == PAGES[3]:
-    from pages import team_analytics
+    from dashboard import team_analytics
     team_analytics.render(DELTA_BASE)
 elif page == PAGES[4]:
-    from pages import venue_toss
+    from dashboard import venue_toss
     venue_toss.render(DELTA_BASE)
 elif page == PAGES[5]:
-    from pages import match_trends
+    from dashboard import match_trends
     match_trends.render(DELTA_BASE)
 elif page == PAGES[6]:
-    from pages import live_scorecard
+    from dashboard import live_scorecard
     live_scorecard.render(DELTA_BASE)
