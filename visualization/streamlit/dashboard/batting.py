@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from .helpers import (load_kpi, no_data_warning, enrich_player_df, team_filter,
-                      flagged_name)
+                      flagged_name, chart_type_selector, render_chart)
 
 
 def render(delta_base: str) -> None:
@@ -62,12 +62,10 @@ def render(delta_base: str) -> None:
                 height=min(600, 40 + 35 * len(df)),
             )
         with col2:
+            ct = chart_type_selector(key="bat_top_chart", default="Bar")
             top_chart = df.head(15)
-            fig = px.bar(top_chart, x="player_display", y="total_runs", text="total_runs",
-                         color="total_runs", color_continuous_scale="YlOrRd")
-            fig.update_layout(xaxis_title="", yaxis_title="Runs",
-                              coloraxis_showscale=False, height=400)
-            st.plotly_chart(fig, use_container_width=True)
+            render_chart(top_chart, "player_display", "total_runs", ct,
+                         "YlOrRd", "Runs", height=400)
 
     # ── Tab 1: Best Batting Average (KPI 3) ──────────────────────────────────
     with tabs[1]:
@@ -78,11 +76,9 @@ def render(delta_base: str) -> None:
         df = enrich_player_df(df, "batsman")
         df = team_filter(df, key="bat_avg_team")
         df = df.sort_values("batting_average", ascending=False).head(20)
-        fig = px.bar(df, x="player_display", y="batting_average", text="batting_average",
-                     color="batting_average", color_continuous_scale="Greens")
-        fig.update_layout(xaxis_title="", yaxis_title="Average",
-                          coloraxis_showscale=False, height=420)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="bat_avg_chart", default="Bar")
+        render_chart(df, "player_display", "batting_average", ct,
+                     "Greens", "Average", height=420)
         with st.expander("View data"):
             st.dataframe(df[["player_display", "team", "batting_average", "total_runs", "innings", "dismissals"]].rename(
                 columns={"player_display": "Player"}), use_container_width=True)
@@ -96,11 +92,9 @@ def render(delta_base: str) -> None:
         df = enrich_player_df(df, "batsman")
         df = team_filter(df, key="bat_sr_team")
         df = df.sort_values("strike_rate", ascending=False).head(20)
-        fig = px.bar(df, x="player_display", y="strike_rate", text="strike_rate",
-                     color="strike_rate", color_continuous_scale="Reds")
-        fig.update_layout(xaxis_title="", yaxis_title="Strike Rate",
-                          coloraxis_showscale=False, height=420)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="bat_sr_chart", default="Bar")
+        render_chart(df, "player_display", "strike_rate", ct,
+                     "Reds", "Strike Rate", height=420)
         with st.expander("View data"):
             st.dataframe(df[["player_display", "team", "strike_rate", "total_runs", "balls_faced"]].rename(
                 columns={"player_display": "Player"}), use_container_width=True)
@@ -123,6 +117,7 @@ def render(delta_base: str) -> None:
 
     # ── Tab 4: Most Sixes & Fours (KPIs 8, 9) ───────────────────────────────
     with tabs[4]:
+        ct = chart_type_selector(key="bat_sf_chart", default="Horizontal Bar")
         c1, c2 = st.columns(2)
         with c1:
             st.subheader("💥 Most Sixes")
@@ -131,13 +126,9 @@ def render(delta_base: str) -> None:
                 no_data_warning("most_sixes")
             else:
                 df = enrich_player_df(df, "batsman")
-                df = df.sort_values("sixes", ascending=True).tail(15)
-                fig = px.bar(df, x="sixes", y="player_display", orientation="h",
-                             text="sixes", color="sixes",
-                             color_continuous_scale="Purples")
-                fig.update_layout(yaxis_title="", xaxis_title="Sixes",
-                                  coloraxis_showscale=False, height=450)
-                st.plotly_chart(fig, use_container_width=True)
+                df = df.sort_values("sixes", ascending=False).head(15)
+                render_chart(df, "player_display", "sixes", ct,
+                             "Purples", "Sixes", height=450)
         with c2:
             st.subheader("🏓 Most Fours")
             df = load_kpi(delta_base, "most_fours")
@@ -145,13 +136,9 @@ def render(delta_base: str) -> None:
                 no_data_warning("most_fours")
             else:
                 df = enrich_player_df(df, "batsman")
-                df = df.sort_values("fours", ascending=True).tail(15)
-                fig = px.bar(df, x="fours", y="player_display", orientation="h",
-                             text="fours", color="fours",
-                             color_continuous_scale="Oranges")
-                fig.update_layout(yaxis_title="", xaxis_title="Fours",
-                                  coloraxis_showscale=False, height=450)
-                st.plotly_chart(fig, use_container_width=True)
+                df = df.sort_values("fours", ascending=False).head(15)
+                render_chart(df, "player_display", "fours", ct,
+                             "Oranges", "Fours", height=450)
 
     # ── Tab 5: Player by Match Type (KPI 18) ─────────────────────────────────
     with tabs[5]:
@@ -186,12 +173,9 @@ def render(delta_base: str) -> None:
         df = df.sort_values("partnership_runs", ascending=False).head(20).reset_index(drop=True)
         df.index += 1
         df["pair"] = df["player_display"] + " & " + df["non_striker"].map(flagged_name)
-        fig = px.bar(df, x="pair", y="partnership_runs", text="partnership_runs",
-                     color="partnership_runs", color_continuous_scale="Sunset")
-        fig.update_layout(xaxis_title="", yaxis_title="Runs",
-                          coloraxis_showscale=False, height=420,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="bat_part_chart", default="Bar")
+        render_chart(df, "pair", "partnership_runs", ct,
+                     "Sunset", "Runs", height=420)
 
     # ── Tab 7: Player Consistency (KPI 28) ───────────────────────────────────
     with tabs[7]:

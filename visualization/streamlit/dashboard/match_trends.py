@@ -3,7 +3,7 @@
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from .helpers import load_kpi, no_data_warning
+from .helpers import load_kpi, no_data_warning, chart_type_selector, render_chart
 
 
 def render(delta_base: str) -> None:
@@ -24,12 +24,9 @@ def render(delta_base: str) -> None:
         phase_order = ["Powerplay", "Middle", "Death"]
         df["phase"] = df["phase"].astype("category")
 
-        fig = px.bar(df, x="phase", y="boundary_pct", color="match_type",
-                     barmode="group", text="boundary_pct",
-                     category_orders={"phase": phase_order})
-        fig.update_layout(xaxis_title="Phase", yaxis_title="Boundary %",
-                          height=420)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="mt_boundary_chart", default="Bar")
+        render_chart(df, "phase", "boundary_pct", ct,
+                     "Sunset", "Boundary %", height=420)
         with st.expander("View data"):
             st.dataframe(df, use_container_width=True)
 

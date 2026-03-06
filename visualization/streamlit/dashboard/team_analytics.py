@@ -2,7 +2,7 @@
 
 import streamlit as st
 import plotly.express as px
-from .helpers import load_kpi, no_data_warning, flag
+from .helpers import load_kpi, no_data_warning, flag, chart_type_selector, render_chart
 
 
 def _flag_team_col(df, col="team"):
@@ -28,12 +28,9 @@ def render(delta_base: str) -> None:
         if df.empty:
             no_data_warning("most_wins_by_team"); return
         df = _flag_team_col(df)
-        fig = px.bar(df.sort_values("wins", ascending=False).head(15),
-                     x="team", y="wins", color="match_type",
-                     barmode="group", text_auto=True)
-        fig.update_layout(xaxis_title="", yaxis_title="Wins", height=450,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="team_wins_chart", default="Bar")
+        render_chart(df.sort_values("wins", ascending=False).head(15),
+                     "team", "wins", ct, "Blues", "Wins", height=450)
 
     # ── Tab 1: Powerplay Run Rate (KPI 10) ───────────────────────────────────
     with tabs[1]:
@@ -43,11 +40,9 @@ def render(delta_base: str) -> None:
             no_data_warning("powerplay_run_rate"); return
         df = df.sort_values("powerplay_run_rate", ascending=False).head(20)
         df = _flag_team_col(df, "team")
-        fig = px.bar(df, x="team", y="powerplay_run_rate", color="match_type",
-                     text="powerplay_run_rate", barmode="group")
-        fig.update_layout(xaxis_title="", yaxis_title="Powerplay RR", height=420,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="team_pp_chart", default="Bar")
+        render_chart(df, "team", "powerplay_run_rate", ct,
+                     "YlOrRd", "Powerplay RR", height=420)
 
     # ── Tab 2: Highest Team Totals (KPI 15) ──────────────────────────────────
     with tabs[2]:
@@ -58,13 +53,9 @@ def render(delta_base: str) -> None:
         df = df.sort_values("team_total", ascending=False).head(20).reset_index(drop=True)
         df.index += 1
         df = _flag_team_col(df)
-        fig = px.bar(df, x="team", y="team_total", text="team_total",
-                     color="team_total", color_continuous_scale="Inferno",
-                     hover_data=["venue", "match_id"])
-        fig.update_layout(xaxis_title="", yaxis_title="Total",
-                          coloraxis_showscale=False, height=420,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="team_totals_chart", default="Bar")
+        render_chart(df, "team", "team_total", ct,
+                     "Inferno", "Total", height=420)
         with st.expander("View data"):
             st.dataframe(df, use_container_width=True)
 
@@ -102,11 +93,9 @@ def render(delta_base: str) -> None:
             no_data_warning("extras_analysis"); return
         df = df.sort_values("avg_extras_per_match", ascending=False).head(20)
         df = _flag_team_col(df)
-        fig = px.bar(df, x="team", y="avg_extras_per_match", color="match_type",
-                     text="avg_extras_per_match", barmode="group")
-        fig.update_layout(xaxis_title="", yaxis_title="Avg Extras / Match",
-                          height=420, xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="team_extras_chart", default="Bar")
+        render_chart(df, "team", "avg_extras_per_match", ct,
+                     "Burg", "Avg Extras / Match", height=420)
 
     # ── Tab 6: Head-to-Head (KPI 27) ─────────────────────────────────────────
     with tabs[6]:

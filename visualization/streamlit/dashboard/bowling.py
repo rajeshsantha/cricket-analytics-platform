@@ -2,7 +2,8 @@
 
 import streamlit as st
 import plotly.express as px
-from .helpers import (load_kpi, no_data_warning, enrich_player_df, team_filter)
+from .helpers import (load_kpi, no_data_warning, enrich_player_df, team_filter,
+                      chart_type_selector, render_chart)
 
 
 def render(delta_base: str) -> None:
@@ -29,11 +30,9 @@ def render(delta_base: str) -> None:
                 columns={"player_display": "Bowler"}),
                 use_container_width=True, height=400)
         with c2:
-            fig = px.bar(df, x="player_display", y="wickets", text="wickets",
-                         color="wickets", color_continuous_scale="Blues")
-            fig.update_layout(xaxis_title="", yaxis_title="Wickets",
-                              coloraxis_showscale=False, height=400)
-            st.plotly_chart(fig, use_container_width=True)
+            ct = chart_type_selector(key="bowl_top_chart", default="Bar")
+            render_chart(df, "player_display", "wickets", ct,
+                         "Blues", "Wickets", height=400)
 
     # ── Tab 1: Best Bowling Average (KPI 4) ──────────────────────────────────
     with tabs[1]:
@@ -44,12 +43,9 @@ def render(delta_base: str) -> None:
         df = enrich_player_df(df, "bowler")
         df = team_filter(df, key="bowl_avg_team")
         df = df.sort_values("bowling_average", ascending=True).head(20)
-        fig = px.bar(df, x="player_display", y="bowling_average", text="bowling_average",
-                     color="bowling_average", color_continuous_scale="Teal")
-        fig.update_layout(xaxis_title="", yaxis_title="Bowling Average",
-                          coloraxis_showscale=False, height=420,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="bowl_avg_chart", default="Bar")
+        render_chart(df, "player_display", "bowling_average", ct,
+                     "Teal", "Bowling Average", height=420)
         with st.expander("View data"):
             st.dataframe(df[["player_display", "team", "bowling_average", "wickets", "runs_conceded"]].rename(
                 columns={"player_display": "Bowler"}), use_container_width=True)
@@ -63,12 +59,9 @@ def render(delta_base: str) -> None:
         df = enrich_player_df(df, "bowler")
         df = team_filter(df, key="bowl_eco_team")
         df = df.sort_values("economy_rate", ascending=True).head(20)
-        fig = px.bar(df, x="player_display", y="economy_rate", text="economy_rate",
-                     color="economy_rate", color_continuous_scale="Mint")
-        fig.update_layout(xaxis_title="", yaxis_title="Economy Rate",
-                          coloraxis_showscale=False, height=420,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="bowl_eco_chart", default="Bar")
+        render_chart(df, "player_display", "economy_rate", ct,
+                     "Mint", "Economy Rate", height=420)
         with st.expander("View data"):
             st.dataframe(df[["player_display", "team", "economy_rate", "overs_bowled", "runs_conceded"]].rename(
                 columns={"player_display": "Bowler"}), use_container_width=True)
@@ -82,12 +75,9 @@ def render(delta_base: str) -> None:
         df = enrich_player_df(df, "bowler")
         df = team_filter(df, key="bowl_death_team")
         df = df.sort_values("death_economy", ascending=True).head(20)
-        fig = px.bar(df, x="player_display", y="death_economy", text="death_economy",
-                     color="death_economy", color_continuous_scale="Burg")
-        fig.update_layout(xaxis_title="", yaxis_title="Death Economy",
-                          coloraxis_showscale=False, height=420,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="bowl_death_chart", default="Bar")
+        render_chart(df, "player_display", "death_economy", ct,
+                     "Burg", "Death Economy", height=420)
 
     # ── Tab 4: Dot Ball Percentage (KPI 20) ──────────────────────────────────
     with tabs[4]:
@@ -98,12 +88,9 @@ def render(delta_base: str) -> None:
         df = enrich_player_df(df, "bowler")
         df = team_filter(df, key="bowl_dot_team")
         df = df.sort_values("dot_ball_pct", ascending=False).head(20)
-        fig = px.bar(df, x="player_display", y="dot_ball_pct", text="dot_ball_pct",
-                     color="dot_ball_pct", color_continuous_scale="Purples")
-        fig.update_layout(xaxis_title="", yaxis_title="Dot Ball %",
-                          coloraxis_showscale=False, height=420,
-                          xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        ct = chart_type_selector(key="bowl_dot_chart", default="Bar")
+        render_chart(df, "player_display", "dot_ball_pct", ct,
+                     "Purples", "Dot Ball %", height=420)
 
     # ── Tab 5: Best Bowling Spells (KPI 29) ──────────────────────────────────
     with tabs[5]:
