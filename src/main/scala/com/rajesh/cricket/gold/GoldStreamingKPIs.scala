@@ -1,3 +1,9 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Gold streaming layer — produces real-time KPIs from live ball-by-ball data.
+ */
 package com.rajesh.cricket.gold
 
 import com.rajesh.cricket.config.AppConfig

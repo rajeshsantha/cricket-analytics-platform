@@ -1,3 +1,9 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Bronze batch layer — reads raw Cricsheet JSON and writes to Bronze Delta table.
+ */
 package com.rajesh.cricket.bronze
 
 import com.rajesh.cricket.config.AppConfig

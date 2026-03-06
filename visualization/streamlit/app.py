@@ -1,6 +1,7 @@
 """
 Cricket Analytics Platform — T20 World Cup 2026 Edition
 Streamlit Dashboard powered by 30 Gold-layer KPIs from Cricsheet data.
+Author: Rajesh Santha
 """
 
 import streamlit as st
@@ -47,6 +48,8 @@ st.sidebar.caption(
     "48 matches · 11,306 deliveries\n\n"
     "Powered by Apache Spark · Delta Lake · Streamlit"
 )
+st.sidebar.markdown("---")
+st.sidebar.caption("Developed by **Rajesh Santha**")
 
 # ─── Route to page modules ────────────────────────────────────────────────────
 if page == PAGES[0]:

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────────────
-# start_airflow.sh — Start Airflow for Cricket Analytics Pipeline
+# Cricket Analytics Platform — Airflow Launcher
+# Author: Rajesh Santha
 #
 # Usage:
 #   bash scripts/start_airflow.sh              # Start Airflow standalone

@@ -1,6 +1,6 @@
 """
-🏏 Cricket Analytics Platform — Airflow DAG
-============================================
+Cricket Analytics Platform — Airflow DAG
+Author: Rajesh Santha
 
 Orchestrates the full batch pipeline:
   Task 1: Build JAR (mvn package) — skipped if JAR already exists
@@ -27,11 +27,12 @@ PROJECT_DIR = "/Users/rajeshsantha/IdeaProjects/cricket-analytics-platform"
 SPARK_HOME = "/Users/rajeshsantha/spark411"
 SPARK_SUBMIT = f"{SPARK_HOME}/bin/spark-submit"
 JAR_PATH = f"{PROJECT_DIR}/target/cricket-analytics-platform-1.0.0-SNAPSHOT-jar-with-dependencies.jar"
-DATA_PATH = "/Users/rajeshsantha/Datasets/t20_wc_2026_json"   # Cricsheet JSON (primary)
-DATA_PATH_ALT = f"{STREAMLIT_DIR}/data/raw_json"              # Fallback: bundled raw JSON
 DELTA_BASE = "/tmp/cricket-delta"
 STREAMLIT_DIR = f"{PROJECT_DIR}/visualization/streamlit"
 JAVA_HOME = "/opt/homebrew/opt/openjdk@21"
+
+DATA_PATH = "/Users/rajeshsantha/Datasets/t20_wc_2026_json"   # Cricsheet JSON (primary)
+DATA_PATH_ALT = f"{STREAMLIT_DIR}/data/raw_json"              # Fallback: bundled raw JSON
 
 # Environment variables passed to all tasks
 ENV_VARS = {

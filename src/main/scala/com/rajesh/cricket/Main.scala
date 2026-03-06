@@ -1,3 +1,10 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Main entry point — routes CLI arguments to the appropriate pipeline mode
+ * (batch, streaming, poller, or gold-only).
+ */
 package com.rajesh.cricket
 
 import com.rajesh.cricket.bronze.{BronzeBatchJob, BronzeStreamingJob}

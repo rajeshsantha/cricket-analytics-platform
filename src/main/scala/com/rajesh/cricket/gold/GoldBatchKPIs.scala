@@ -1,3 +1,9 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Gold batch layer — computes 30 analytical KPIs from Silver data using Spark SQL.
+ */
 package com.rajesh.cricket.gold
 
 import com.rajesh.cricket.config.AppConfig

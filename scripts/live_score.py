@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """
+Cricket Analytics Platform — Live Score CLI
+Author: Rajesh Santha
+
 CLI tool to fetch live cricket scores from CricAPI.
 
 Usage:

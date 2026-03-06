@@ -1,3 +1,9 @@
+/*
+ * Cricket Analytics Platform
+ * Author: Rajesh Santha
+ *
+ * Bronze streaming layer — consumes Kafka messages and writes to Bronze Delta.
+ */
 package com.rajesh.cricket.bronze
 
 import com.rajesh.cricket.config.AppConfig
