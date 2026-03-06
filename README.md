@@ -281,7 +281,9 @@ cd visualization/streamlit && streamlit run app.py
 # Navigate to "📡 Live Score" → enter a Match ID or browse live matches
 ```
 
-**Deep-link:** `http://localhost:8501/?match_id=<your-match-id>`
+**Deep-link:**
+- Cloud: `https://cricket-insights.streamlit.app/?match_id=<your-match-id>`
+- Local: `http://localhost:8501/?match_id=<your-match-id>`
 
 **CLI:**
 ```bash
@@ -576,4 +578,5 @@ Apache Spark, Delta Lake, Kafka, Airflow, and Streamlit.
 This project uses publicly available cricket data from
 [Cricsheet](https://cricsheet.org) (CC BY 4.0) and
 [CricAPI](https://cricapi.com) for live scores.
+
 
