@@ -55,13 +55,32 @@ object CricsheetIngestionJob {
   private def writeToBronze(df: DataFrame)(implicit spark: SparkSession): Unit = {
     val bronzePath = AppConfig.deltaBronzeDeliveries
 
-    // match_type lives inside the nested `info` struct (info.match_type).
-    // Promote it to a top-level column so Delta can use it as a partition key.
-    val partitioned = df
+    // info.players  → struct keyed by team name  (e.g. "Chennai Super Kings")
+    // info.registry → struct keyed by player name (e.g. "V Kohli")
+    // Both contain spaces in field names which Delta forbids.
+    // Rebuild info without those two sub-fields; all analytics columns are preserved.
+    val cleanDf = df
+      .withColumn("info", struct(
+        col("info.balls_per_over"),
+        col("info.city"),
+        col("info.dates"),
+        col("info.event"),
+        col("info.gender"),
+        col("info.match_type"),
+        col("info.officials"),
+        col("info.outcome"),
+        col("info.overs"),
+        col("info.player_of_match"),
+        col("info.season"),
+        col("info.team_type"),
+        col("info.teams"),
+        col("info.toss"),
+        col("info.venue")
+      ))
       .withColumn("match_type", col("info.match_type"))
       .withColumn("season",     col("info.season"))
 
-    partitioned.write
+    cleanDf.write
       .format("delta")
       .mode("append")
       .partitionBy("match_type", "season")

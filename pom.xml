@@ -141,7 +141,7 @@
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>4.8.1</version>
+        <version>4.9.2</version>
         <executions>
           <execution>
             <goals>
@@ -152,10 +152,13 @@
         </executions>
         <configuration>
           <scalaVersion>${scala.version}</scalaVersion>
+          <!-- Scala 2.13 does not support -release; explicitly set -target instead -->
+          <release />
           <args>
             <arg>-deprecation</arg>
             <arg>-feature</arg>
             <arg>-unchecked</arg>
+            <arg>-target:jvm-17</arg>
           </args>
         </configuration>
       </plugin>
