@@ -62,6 +62,7 @@ def render(delta_base: str) -> None:
         st.subheader("🏏 Top 10 Run Scorers")
         if not top_scorers.empty:
             df = enrich_player_df(top_scorers, "batsman")
+            df = df.sort_values("total_runs", ascending=False).head(10)
             df = df.sort_values("total_runs", ascending=True)
             fig = px.bar(df, x="total_runs", y="player_display", orientation="h",
                          text="total_runs", color="total_runs",
