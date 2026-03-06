@@ -107,7 +107,7 @@ object GoldBatchKPIs {
       |ORDER BY wickets DESC
       |LIMIT 10""".stripMargin
 
-  /** KPI 3: Best batting average (min 20 innings) */
+  /** KPI 3: Best batting average (min 3 innings) */
   val kpi03BestBattingAverage: String =
     """SELECT batsman,
       |       SUM(runs_batsman) AS total_runs,
@@ -119,7 +119,7 @@ object GoldBatchKPIs {
       |       END AS batting_average
       |FROM silver_deliveries
       |GROUP BY batsman
-      |HAVING COUNT(DISTINCT match_id || '_' || inning) >= 20
+      |HAVING COUNT(DISTINCT match_id || '_' || inning) >= 3
       |ORDER BY batting_average DESC
       |LIMIT 20""".stripMargin
 
@@ -138,11 +138,11 @@ object GoldBatchKPIs {
       |GROUP BY bowler
       |HAVING SUM(CASE WHEN wicket_kind IS NOT NULL
       |                 AND wicket_kind NOT IN ('run out','retired hurt','obstructing the field')
-      |                THEN 1 ELSE 0 END) >= 50
+      |                THEN 1 ELSE 0 END) >= 3
       |ORDER BY bowling_average ASC
       |LIMIT 20""".stripMargin
 
-  /** KPI 5: Best strike rate (min 500 balls faced) */
+  /** KPI 5: Best strike rate (min 30 balls faced) */
   val kpi05BestStrikeRate: String =
     """SELECT batsman,
       |       SUM(runs_batsman) AS total_runs,
@@ -150,11 +150,11 @@ object GoldBatchKPIs {
       |       ROUND(SUM(runs_batsman) * 100.0 / COUNT(*), 2) AS strike_rate
       |FROM silver_deliveries
       |GROUP BY batsman
-      |HAVING COUNT(*) >= 500
+      |HAVING COUNT(*) >= 30
       |ORDER BY strike_rate DESC
       |LIMIT 20""".stripMargin
 
-  /** KPI 6: Best economy rate (min 100 overs) */
+  /** KPI 6: Best economy rate (min 5 overs) */
   val kpi06BestEconomyRate: String =
     """SELECT bowler,
       |       SUM(runs_total) AS runs_conceded,
@@ -162,7 +162,7 @@ object GoldBatchKPIs {
       |       ROUND(SUM(runs_total) * 6.0 / COUNT(*), 2) AS economy_rate
       |FROM silver_deliveries
       |GROUP BY bowler
-      |HAVING ROUND(COUNT(*) / 6.0, 1) >= 100
+      |HAVING ROUND(COUNT(*) / 6.0, 1) >= 5
       |ORDER BY economy_rate ASC
       |LIMIT 20""".stripMargin
 
@@ -214,7 +214,7 @@ object GoldBatchKPIs {
       |FROM silver_deliveries
       |WHERE over_num >= 15 AND match_type = 'T20'
       |GROUP BY bowler, match_type
-      |HAVING ROUND(COUNT(*) / 6.0, 1) >= 10
+      |HAVING ROUND(COUNT(*) / 6.0, 1) >= 2
       |ORDER BY death_economy ASC
       |LIMIT 20""".stripMargin
 
@@ -309,7 +309,7 @@ object GoldBatchKPIs {
       |ORDER BY partnership_runs DESC
       |LIMIT 20""".stripMargin
 
-  /** KPI 20: Dot ball % by bowler */
+  /** KPI 20: Dot ball % by bowler (min 10 balls) */
   val kpi20DotBallPct: String =
     """SELECT bowler,
       |       COUNT(*) AS balls_bowled,
@@ -317,7 +317,7 @@ object GoldBatchKPIs {
       |       ROUND(SUM(CASE WHEN runs_total = 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS dot_ball_pct
       |FROM silver_deliveries
       |GROUP BY bowler
-      |HAVING COUNT(*) >= 100
+      |HAVING COUNT(*) >= 10
       |ORDER BY dot_ball_pct DESC
       |LIMIT 20""".stripMargin
 
@@ -415,7 +415,7 @@ object GoldBatchKPIs {
       |  GROUP BY batsman, match_id, inning, match_type
       |) t
       |GROUP BY batsman, match_type
-      |HAVING COUNT(DISTINCT match_id || '_' || inning) >= 20
+      |HAVING COUNT(DISTINCT match_id || '_' || inning) >= 3
       |ORDER BY score_stddev ASC
       |LIMIT 20""".stripMargin
 
@@ -448,7 +448,7 @@ object GoldBatchKPIs {
       |FROM silver_deliveries d
       |JOIN silver_matches m ON d.match_id = m.match_id
       |GROUP BY d.batsman, d.match_type
-      |HAVING SUM(d.runs_batsman) >= 500
+      |HAVING SUM(d.runs_batsman) >= 30
       |ORDER BY win_contribution_pct DESC
       |LIMIT 20""".stripMargin
 }

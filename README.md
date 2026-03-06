@@ -64,6 +64,63 @@ cp .env.example .env
 
 ---
 
+## 🔄 Data Refresh — When New Matches Finish
+
+When a new cricket match finishes and Cricsheet publishes the data, use the refresh pipeline to update all statistics:
+
+### Option A: One-command local refresh (recommended for dev)
+
+```bash
+# Dry run — see what new matches are available without changing anything
+bash scripts/refresh_data.sh --dry-run
+
+# Download new matches, reprocess pipeline, re-export Parquet
+bash scripts/refresh_data.sh
+
+# Download, reprocess, AND auto-commit + push for Streamlit Cloud deploy
+bash scripts/refresh_data.sh --deploy
+```
+
+### Option B: Python-only refresh (no Spark required)
+
+```bash
+# Step 1: Detect & download new matches from Cricsheet
+python3 scripts/refresh_data_ci.py
+
+# Step 2: Recompute all 30 KPIs (pure Python/Pandas, ~3 seconds)
+python3 scripts/compute_kpis_lightweight.py
+
+# Step 3: Rebuild player-team mapping
+python3 visualization/streamlit/build_player_map.py
+
+# Step 4: Commit & push
+git add visualization/streamlit/data/
+git commit -m "Data refresh: +N new matches"
+git push
+```
+
+### Option C: Automatic daily refresh (GitHub Actions)
+
+A GitHub Actions workflow runs daily at **06:00 UTC** (11:30 AM IST — after day matches finish):
+1. Downloads latest Cricsheet data
+2. Detects new 2026 T20 World Cup matches
+3. Recomputes all 30 KPIs (Python-only, no Spark)
+4. Commits updated Parquet files back to the branch
+5. Streamlit Cloud auto-deploys on push
+
+To trigger manually: **Actions → 🏏 Refresh T20 WC Data → Run workflow**
+
+### How the Pipeline Handles Incremental Data
+
+| Layer | Strategy | Why |
+|-------|----------|-----|
+| **Raw JSON** | Append-only (`data/raw_json/`) | New match files are added; existing files never change |
+| **KPI Parquet** | Full recompute | All 30 KPIs are recomputed from all matches (~3s in Python) |
+| **Player Map** | Full rebuild | Ensures new players from new matches get team mappings |
+| **Delta Lake** (local only) | Drop & recreate | Spark pipeline clears Delta, reprocesses all matches |
+
+---
+
 ## Step-by-Step Setup
 
 ### Step 1: Run Batch Pipeline (Cricsheet data)

@@ -2,7 +2,14 @@
 
 import streamlit as st
 import plotly.express as px
-from .helpers import load_kpi, no_data_warning
+from .helpers import load_kpi, no_data_warning, flag
+
+
+def _flag_team_col(df, col="team"):
+    """Add flag emojis to a team column for display."""
+    df = df.copy()
+    df[col] = df[col].map(lambda t: f"{flag(t)} {t}")
+    return df
 
 
 def render(delta_base: str) -> None:
@@ -20,6 +27,7 @@ def render(delta_base: str) -> None:
         df = load_kpi(delta_base, "most_wins_by_team")
         if df.empty:
             no_data_warning("most_wins_by_team"); return
+        df = _flag_team_col(df)
         fig = px.bar(df.sort_values("wins", ascending=False).head(15),
                      x="team", y="wins", color="match_type",
                      barmode="group", text_auto=True)
@@ -34,6 +42,7 @@ def render(delta_base: str) -> None:
         if df.empty:
             no_data_warning("powerplay_run_rate"); return
         df = df.sort_values("powerplay_run_rate", ascending=False).head(20)
+        df = _flag_team_col(df, "team")
         fig = px.bar(df, x="team", y="powerplay_run_rate", color="match_type",
                      text="powerplay_run_rate", barmode="group")
         fig.update_layout(xaxis_title="", yaxis_title="Powerplay RR", height=420,
@@ -48,6 +57,7 @@ def render(delta_base: str) -> None:
             no_data_warning("highest_team_totals"); return
         df = df.sort_values("team_total", ascending=False).head(20).reset_index(drop=True)
         df.index += 1
+        df = _flag_team_col(df)
         fig = px.bar(df, x="team", y="team_total", text="team_total",
                      color="team_total", color_continuous_scale="Inferno",
                      hover_data=["venue", "match_id"])
@@ -66,6 +76,7 @@ def render(delta_base: str) -> None:
             no_data_warning("lowest_successful_chases"); return
         df = df.sort_values("chase_total", ascending=True).head(20).reset_index(drop=True)
         df.index += 1
+        df = _flag_team_col(df)
         st.dataframe(
             df[["team", "chase_total", "venue", "match_type", "match_id"]],
             use_container_width=True, height=500,
@@ -90,6 +101,7 @@ def render(delta_base: str) -> None:
         if df.empty:
             no_data_warning("extras_analysis"); return
         df = df.sort_values("avg_extras_per_match", ascending=False).head(20)
+        df = _flag_team_col(df)
         fig = px.bar(df, x="team", y="avg_extras_per_match", color="match_type",
                      text="avg_extras_per_match", barmode="group")
         fig.update_layout(xaxis_title="", yaxis_title="Avg Extras / Match",
@@ -106,7 +118,7 @@ def render(delta_base: str) -> None:
         df.index += 1
 
         # Let user pick a team pair
-        df["matchup"] = df["team1"] + " vs " + df["team2"]
+        df["matchup"] = df["team1"].map(lambda t: f"{flag(t)} {t}") + " vs " + df["team2"].map(lambda t: f"{flag(t)} {t}")
         selected = st.multiselect("Filter matchups", df["matchup"].unique(),
                                   default=df["matchup"].unique()[:10],
                                   key="h2h_filter")

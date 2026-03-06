@@ -1,20 +1,20 @@
 """
-Cricket Analytics Platform — Streamlit Dashboard
-Reads all 30 Gold Delta batch-KPI tables and the live-KPI table,
-then renders an interactive, multi-page dashboard.
+Cricket Analytics Platform — T20 World Cup 2026 Edition
+Streamlit Dashboard powered by 30 Gold-layer KPIs from Cricsheet data.
 """
 
 import streamlit as st
 
 st.set_page_config(
-    page_title="🏏 Cricket Analytics Platform",
-    page_icon="🏏",
+    page_title="🏏 T20 World Cup 2026 Analytics",
+    page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # ─── Sidebar ───────────────────────────────────────────────────────────────────
-st.sidebar.title("🏏 Cricket Analytics")
+st.sidebar.title("🏆 T20 World Cup 2026")
+st.sidebar.caption("ICC Men's T20 World Cup · India & Sri Lanka")
 st.sidebar.markdown("---")
 
 DELTA_BASE = st.sidebar.text_input(
@@ -36,7 +36,11 @@ PAGES = [
 page = st.sidebar.radio("Navigate", PAGES)
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Powered by Apache Spark · Delta Lake · Streamlit")
+st.sidebar.caption(
+    "Data: [Cricsheet](https://cricsheet.org) · "
+    "48 matches · 11,306 deliveries\n\n"
+    "Powered by Apache Spark · Delta Lake · Streamlit"
+)
 
 # ─── Route to page modules ────────────────────────────────────────────────────
 if page == PAGES[0]:
