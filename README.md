@@ -97,6 +97,7 @@ Branches are isolated — a PR or push to one branch never affects another tourn
 | `tournament/ipl` | IPL (frozen copy) | Same as main | All IPL seasons | ✅ Frozen |
 | `t20-worldcup-2026` | ICC T20 World Cup 2026 | Cricsheet T20 WC 2026 JSON | 48+ matches | ✅ Active |
 | `feature/auto-refresh` | T20 WC 2026 + Auto Refresh | Same + GitHub Actions CI | 48+ matches | ✅ Active |
+| `feature/live-score` | T20 WC 2026 + Live Scores | CricAPI REST (real-time) | Live matches | ✅ Active |
 
 ### Switching Between Tournaments
 
@@ -141,6 +142,16 @@ git checkout -b tournament/odi-wc-2027 main
 - `refresh_data_ci.py` for Python-only CI refresh
 - Automatic detection of new matches from Cricsheet
 - Auto-commit + push for Streamlit Cloud redeployment
+
+#### `feature/live-score` — T20 WC 2026 + Live Match Scores
+- Everything from `feature/auto-refresh` plus:
+- **📡 Live Score page**: Real-time match scores via CricAPI (no Kafka/Spark required)
+- **Match ID parameter**: Pass `?match_id=abc123` in the URL to deep-link to a match
+- **Browse Live Matches**: Lists all currently live/recent cricket matches
+- **Full Scorecard**: Batting + bowling breakdowns with run charts
+- **Auto-refresh**: Configurable 5–60 second polling interval
+- **CLI tool**: `python3 scripts/live_score.py --match-id abc123 --watch`
+- **Country flags** on live match teams
 
 ---
 
@@ -294,6 +305,42 @@ spark-submit ... Main --mode poller
 spark-submit ... Main --mode gold
 ```
 
+### Mode 6: Live Match Scores (Python-only, no Spark/Kafka)
+
+Get real-time scores for any live cricket match via CricAPI. No Spark, Kafka, or Delta Lake required.
+
+**Dashboard (Streamlit):**
+```bash
+# Set your API key
+export CRICAPI_KEY="your-api-key-here"
+
+# Start the dashboard
+cd visualization/streamlit && streamlit run app.py
+# Navigate to "📡 Live Score" → Enter a Match ID or browse live matches
+```
+
+**Deep-link to a specific match:**
+```
+http://localhost:8501/?match_id=d9032b36-d872-4011-b96c-73a9137e7ced
+```
+
+**CLI (terminal):**
+```bash
+# List all current live/recent matches
+python3 scripts/live_score.py --list
+
+# Show live score for a specific match
+python3 scripts/live_score.py --match-id d9032b36-d872-4011-b96c-73a9137e7ced
+
+# Watch mode — auto-refresh every 10 seconds
+python3 scripts/live_score.py --match-id abc123 --watch --interval 10
+
+# Output as JSON (for piping/processing)
+python3 scripts/live_score.py --match-id abc123 --json
+```
+
+**Get a free CricAPI key:** [cricapi.com](https://cricapi.com) (100 requests/day free tier)
+
 ---
 
 ## 🔄 Data Refresh — When New Matches Finish
@@ -383,17 +430,18 @@ streamlit run app.py
 # Opens at http://localhost:8501
 ```
 
-### Dashboard Pages (7 pages, 30 KPIs)
+### Dashboard Pages (8 pages, 30 KPIs)
 
 | Page | KPIs | Features |
 |------|------|----------|
 | 🏠 **Overview** | 1, 2, 8, 9, 17, 24 | Headline metrics, bar charts, run-rate line chart |
+| 📡 **Live Score** | Real-time | CricAPI live scores, batting/bowling scorecards, auto-refresh |
 | 🏏 **Batting** | 1, 3, 5, 7, 8, 9, 18, 19, 28, 30 | 9 tabs — Top Scorers, Batting Avg, Strike Rate, Highest Scores, Sixes & Fours, By Match Type, Partnerships, Consistency, Win Contribution |
 | 🎳 **Bowling** | 2, 4, 6, 11, 20, 29 | 6 tabs — Top Wicket Takers, Bowling Avg, Economy Rate, Death Overs, Dot Ball %, Best Spells |
 | 👥 **Team Analytics** | 10, 15, 16, 17, 22, 25, 27 | 7 tabs — Powerplay, Team Totals, Chases, Most Wins, Runs/Wicket, Extras, Head-to-Head |
 | 🏟️ **Venue & Toss** | 12, 13, 14, 26 | 4 tabs — Toss Impact, Bat First vs Chase, Venue Scores, Home/Away |
 | 📈 **Match Trends** | 21, 23, 24 | 3 tabs — Boundary Analysis, Pressure Index, Run Rate Progression |
-| 📊 **Live Scorecard** | Streaming KPIs | Real-time metrics with auto-refresh (requires streaming pipeline) |
+| 📊 **Live Scorecard (Spark)** | Streaming KPIs | Spark Structured Streaming via Kafka (requires full pipeline) |
 
 ### Key Dashboard Features
 
