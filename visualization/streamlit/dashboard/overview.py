@@ -6,10 +6,10 @@ from .helpers import load_kpi, no_data_warning
 
 
 def render(delta_base: str) -> None:
-    st.title("🏏 Cricket Analytics — Overview")
+    st.title("🏆 T20 World Cup 2026 — Analytics Dashboard")
     st.markdown(
-        "Headline metrics derived from **30 Gold-layer KPIs** computed over all "
-        "IPL / Cricsheet match data."
+        "**ICC Men's T20 World Cup 2026** · India & Sri Lanka · Feb–Mar 2026\n\n"
+        "48 matches analyzed across **30 Gold-layer KPIs** computed from Cricsheet ball-by-ball data."
     )
 
     # ── Row 1: headline metric cards ──────────────────────────────────────────
