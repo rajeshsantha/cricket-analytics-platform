@@ -1,0 +1,68 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Lightweight CI: download Cricsheet data, detect new matches, export Parquet
+# for the Streamlit dashboard, and commit back to the branch.
+#
+# Does NOT run Spark (too heavy for GitHub Actions free tier).
+# Instead uses a Python-only pipeline that reads JSON → computes KPIs → Parquet.
+# ──────────────────────────────────────────────────────────────────────────────
+name: "🏏 Refresh T20 WC Data"
+
+on:
+  # Run daily at 06:00 UTC (11:30 AM IST — after day matches finish)
+  schedule:
+    - cron: "0 6 * * *"
+  # Manual trigger with optional force flag
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force full re-export even if no new matches"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/t20-worldcup-2026' || github.ref == 'refs/heads/feature/auto-refresh'
+
+    steps:
+      - name: 🛎️ Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install Python deps
+        run: pip install pandas pyarrow requests
+
+      - name: 🏏 Download & detect new matches
+        id: detect
+        run: python3 scripts/refresh_data_ci.py
+        env:
+          FORCE: ${{ inputs.force || 'false' }}
+
+      - name: 📊 Export KPIs (Python-only)
+        if: steps.detect.outputs.new_matches != '0' || inputs.force == true
+        run: python3 scripts/compute_kpis_lightweight.py
+
+      - name: 🗺️ Rebuild player map
+        if: steps.detect.outputs.new_matches != '0' || inputs.force == true
+        run: python3 visualization/streamlit/build_player_map.py
+
+      - name: 📤 Commit & push updated data
+        if: steps.detect.outputs.new_matches != '0' || inputs.force == true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add visualization/streamlit/data/
+          TOTAL=$(ls -1 visualization/streamlit/data/*.parquet | wc -l | tr -d ' ')
+          NEW=${{ steps.detect.outputs.new_matches }}
+          git commit -m "🏏 Auto-refresh: +${NEW} new match(es), ${TOTAL} KPIs updated [skip ci]" || echo "No changes"
+          git push
+
